@@ -1,0 +1,184 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Fraunces", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  /* Aliasing old tokens to preserve MERN styling tags */
+  --color-farm-green-dark: #2F4B3C;
+  --color-farm-green-medium: #3E6B6B;
+  --color-farm-cream: #F6EFE3;
+  --color-farm-earth: #8A6A4B;
+  --color-farm-gold: #A65D3D;
+  --color-farm-slate: #3E6B6B;
+  --color-farm-yellow: #C99A3A;
+
+  /* Sourcing Custom Sri Lankan design tokens */
+  --color-tea-green: #2F4B3C;
+  --color-lagoon-teal: #3E6B6B;
+  --color-coconut-cream: #F6EFE3;
+  --color-palmyrah-brown: #8A6A4B;
+  --color-cinnamon-bark: #A65D3D;
+  --color-turmeric-ochre: #C99A3A;
+  
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-fade-in-up: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F6EFE3;
+}
+::-webkit-scrollbar-thumb {
+  background: #A65D3D;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8A6A4B;
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(246, 239, 227, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(138, 106, 75, 0.08);
+}
+
+.glass-dark {
+  background: rgba(47, 75, 60, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Authentic Sri Lankan cadjan woven palm-leaf background texture */
+.bg-texture-linen,
+.bg-texture-kraft,
+.bg-texture-wood,
+.bg-texture-cadjan {
+  background-color: #F6EFE3;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l30 30L60 0M0 60l30-30 30 30' fill='none' stroke='%238A6A4B' stroke-width='1' stroke-opacity='0.035'/%3E%3Cpath d='M30 0v60M0 30h60' fill='none' stroke='%238A6A4B' stroke-width='0.5' stroke-opacity='0.015'/%3E%3C/svg%3E");
+}
+
+body {
+  background-color: #F6EFE3;
+  color: #2F4B3C;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, .font-serif-accent {
+  font-family: 'Fraunces', 'Lora', Georgia, serif;
+}
+
+.btn-primary {
+  background-color: #2F4B3C;
+  color: #FFFFFF;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid transparent;
+}
+.btn-primary:hover {
+  background-color: #A65D3D;
+  color: #FFFFFF;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: #2F4B3C;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #2F4B3C;
+  transition: all 0.2s ease-in-out;
+}
+.btn-secondary:hover {
+  background-color: rgba(47, 75, 60, 0.05);
+}
+
+/* Twine Root / Palmyrah Husk connection thread lines */
+.harvest-thread {
+  position: relative;
+}
+
+.harvest-thread-line-h {
+  height: 1px;
+  background-image: linear-gradient(to right, #8A6A4B 33%, rgba(255, 255, 255, 0) 0%);
+  background-position: bottom;
+  background-size: 4px 1px;
+  background-repeat: repeat-x;
+  opacity: 0.25;
+}
+
+.harvest-thread-line-v {
+  width: 1px;
+  background-image: linear-gradient(to bottom, #8A6A4B 33%, rgba(255, 255, 255, 0) 0%);
+  background-position: right;
+  background-size: 1px 4px;
+  background-repeat: repeat-y;
+  opacity: 0.25;
+}
+
+/* Sandakada Pahana inspired Concentric Moonstone Divider lines */
+.moonstone-divider {
+  height: 14px;
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='14' viewBox='0 0 100 14' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='7' r='6' fill='none' stroke='%23A65D3D' stroke-width='0.75' stroke-opacity='0.25'/%3E%3Ccircle cx='50' cy='7' r='3.5' fill='none' stroke='%23A65D3D' stroke-width='0.5' stroke-opacity='0.25'/%3E%3Ccircle cx='50' cy='7' r='1.25' fill='%23A65D3D' fill-opacity='0.25'/%3E%3Cpath d='M0 7h40M60 7h40' stroke='%23A65D3D' stroke-width='0.5' stroke-opacity='0.15'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: repeat-x;
+  opacity: 0.8;
+}
+
+/* Sourcing Dashboard graph-paper background texture */
+.bg-texture-graph {
+  background-color: #F6EFE3;
+  background-image: 
+    linear-gradient(rgba(138, 106, 75, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(138, 106, 75, 0.03) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Validation styles (accessible calm notifications) */
+.input-field {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-valid {
+  border-color: #3E6B6B !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%233E6B6B' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M4.5 12.75l6 6 9-13.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+  padding-right: 32px !important;
+}
+
+.input-invalid {
+  border-color: #A65D3D !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23A65D3D' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 15px;
+  padding-right: 32px !important;
+}
