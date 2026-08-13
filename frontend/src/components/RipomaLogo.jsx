@@ -105,7 +105,7 @@ const RipomaLogo = ({
 
       {/* RIP Wordmark */}
       <text
-        x="10"
+        x="45"
         y="60"
         fontFamily="'Arial Black', 'Impact', 'Oswald', sans-serif"
         fontWeight="900"
@@ -117,7 +117,7 @@ const RipomaLogo = ({
       </text>
 
       {/* Leaf-in-Circle Icon (The "O") */}
-      <g transform="translate(152, 4)">
+      <g transform="translate(142, 4)">
         <circle cx="28" cy="28" r="24" fill="none" stroke={iconStroke} strokeWidth="2.8" />
         {/* Main Center Leaf */}
         <path
@@ -143,7 +143,7 @@ const RipomaLogo = ({
 
       {/* MA Wordmark */}
       <text
-        x="212"
+        x="198"
         y="60"
         fontFamily="'Arial Black', 'Impact', 'Oswald', sans-serif"
         fontWeight="900"
@@ -158,10 +158,10 @@ const RipomaLogo = ({
       {!compact && (
         <g transform="translate(0, 72)">
           {/* Left Line */}
-          <line x1="28" y1="18" x2="114" y2="18" stroke={subColor} strokeWidth="1.5" opacity="0.9" />
+          <line x1="45" y1="18" x2="124" y2="18" stroke={subColor} strokeWidth="1.5" opacity="0.9" />
           {/* Left Leaf Accent */}
           <path
-            d="M110 13 C107 11 104 13 106 17 C107.5 15 109 13.5 110 13 Z"
+            d="M120 13 C117 11 114 13 116 17 C117.5 15 119 13.5 120 13 Z"
             fill={subColor}
             opacity="0.9"
           />
@@ -182,12 +182,12 @@ const RipomaLogo = ({
 
           {/* Right Leaf Accent */}
           <path
-            d="M230 13 C233 11 236 13 234 17 C232.5 15 231 13.5 230 13 Z"
+            d="M220 13 C223 11 226 13 224 17 C222.5 15 221 13.5 220 13 Z"
             fill={subColor}
             opacity="0.9"
           />
           {/* Right Line */}
-          <line x1="226" y1="18" x2="312" y2="18" stroke={subColor} strokeWidth="1.5" opacity="0.9" />
+          <line x1="216" y1="18" x2="295" y2="18" stroke={subColor} strokeWidth="1.5" opacity="0.9" />
         </g>
       )}
     </svg>
