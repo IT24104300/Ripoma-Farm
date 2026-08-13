@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 import { Menu, X, ShoppingBag, User, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
 import RipomaLogo from './RipomaLogo';
+import { HenIcon } from './FarmIcons';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -86,7 +87,7 @@ const Navbar = () => {
             {/* Harvest Loyalty Points Indicator */}
             {user && (
               <div className="flex items-center gap-1.5 bg-[#F6EFE3]/10 px-3 py-1.5 rounded-full border border-white/10 text-xs text-[#F6EFE3] animate-pop-scale">
-                <HenIcon className="w-4 h-4 fill-current text-[#C99A3A]" />
+                <RipomaLogo variant="icon" height={16} />
                 <span className="font-bold text-[11px] tracking-wide">185 Pts</span>
               </div>
             )}
