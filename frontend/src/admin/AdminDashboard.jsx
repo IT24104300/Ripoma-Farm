@@ -42,11 +42,6 @@ const AdminDashboard = () => {
   const [searchResults, setSearchResults] = useState({ products: [], orders: [], workers: [] });
   const [indexing, setIndexing] = useState(false);
 
-  // Security check: render dedicated AdminLogin if unauthenticated
-  if (!loading && (!user || (user.role !== 'admin' && user.role !== 'worker'))) {
-    return <AdminLogin onSuccess={() => navigate('/admin')} />;
-  }
-
   // Load notifications
   const fetchNotifs = async () => {
     try {
@@ -134,13 +129,17 @@ const AdminDashboard = () => {
     }
   };
 
-  if (loading || !user || (user.role !== 'admin' && user.role !== 'worker')) {
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] gap-4 font-sans text-center">
         <Lock className="w-10 h-10 text-[#A65D3D] animate-bounce" />
         <h2 className="text-base font-serif font-bold text-[#2F4B3C]">Verifying Sourcing Access Credentials...</h2>
       </div>
     );
+  }
+
+  if (!user || (user.role !== 'admin' && user.role !== 'worker')) {
+    return <AdminLogin onSuccess={() => navigate('/admin')} />;
   }
 
   const getViewLabel = () => {
