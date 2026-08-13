@@ -4,7 +4,6 @@ import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 import { Menu, X, ShoppingBag, User, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
 import RipomaLogo from './RipomaLogo';
-import { HenIcon } from './FarmIcons';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -15,13 +14,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 120) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 80);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -35,96 +28,118 @@ const Navbar = () => {
   const totalCartItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <nav className="bg-[#2F4B3C] text-white sticky top-0 z-40 border-b border-white/5 backdrop-blur-md bg-opacity-95 shadow-sm transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav
+      className="sticky top-0 z-40 text-white transition-all duration-300 shadow-sm"
+      style={{
+        background: isScrolled
+          ? 'linear-gradient(90deg, #3A2B1D 0%, #5C4630 100%)'
+          : 'linear-gradient(90deg, #5C4630 0%, #3A2B1D 100%)',
+        borderBottom: '2px solid rgba(92,70,48,0.6)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
+      }}
+    >
+      {/* Grain texture overlay */}
+      <div className="absolute inset-0 bg-texture-basket opacity-10 pointer-events-none" aria-hidden="true" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'h-14' : 'h-20'}`}>
-          
-          {/* Logo and Brand */}
+
+          {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <Link to="/" className="flex items-center group transition-transform duration-300">
+            <Link to="/" className="flex items-center group">
               <div className="hidden sm:block">
                 <RipomaLogo
-                  variant={isScrolled ? "compact" : "full"}
+                  variant={isScrolled ? 'compact' : 'full'}
                   color="white"
-                  height={isScrolled ? 30 : 40}
+                  height={isScrolled ? 28 : 38}
                   className="transition-all duration-300"
                 />
               </div>
               <div className="sm:hidden">
                 <RipomaLogo
-                  variant={isScrolled ? "icon" : "compact"}
+                  variant="icon"
                   color="white"
-                  height={isScrolled ? 24 : 28}
+                  height={isScrolled ? 22 : 26}
                   className="transition-all duration-300"
                 />
               </div>
             </Link>
           </div>
 
-          {/* Desktop Navigation Link items */}
-          <div className="hidden md:flex items-center space-x-8 text-xs uppercase tracking-widest font-sans font-medium text-[#F6EFE3]/80">
-            <Link to="/" className="hover:text-white transition-colors relative group py-2">
-              Home
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#A65D3D] transition-all group-hover:w-full"></span>
-            </Link>
-            <Link to="/catalog" className="hover:text-white transition-colors relative group py-2">
-              Shop
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#A65D3D] transition-all group-hover:w-full"></span>
-            </Link>
-            <Link to="/about" className="hover:text-white transition-colors relative group py-2">
-              Our Story
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#A65D3D] transition-all group-hover:w-full"></span>
-            </Link>
-            <Link to="/contact" className="hover:text-white transition-colors relative group py-2">
-              Contact
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#A65D3D] transition-all group-hover:w-full"></span>
-            </Link>
+          {/* Desktop nav links — Caveat hand-lettered style */}
+          <div className="hidden md:flex items-center space-x-7 font-handwritten text-base tracking-wide text-[#F2E8D5]/90">
+            {[['/', 'Home'], ['/catalog', 'Shop'], ['/about', 'Our Story'], ['/contact', 'Contact']].map(([to, label]) => (
+              <Link
+                key={to}
+                to={to}
+                className="relative group py-1 hover:text-white transition-colors"
+              >
+                {label}
+                {/* Chalk underline effect */}
+                <span
+                  className="absolute bottom-0 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full"
+                  style={{ background: '#C99A3A', borderRadius: '1px' }}
+                />
+              </Link>
+            ))}
           </div>
 
-          {/* Icons & Account block */}
-          <div className="hidden md:flex items-center space-x-5">
-            
-            {/* Harvest Loyalty Points Indicator */}
+          {/* Icons & account block */}
+          <div className="hidden md:flex items-center space-x-4">
+
+            {/* Loyalty points */}
             {user && (
-              <div className="flex items-center gap-1.5 bg-[#F6EFE3]/10 px-3 py-1.5 rounded-full border border-white/10 text-xs text-[#F6EFE3] animate-pop-scale">
-                <RipomaLogo variant="icon" height={16} />
-                <span className="font-bold text-[11px] tracking-wide">185 Pts</span>
+              <div
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-[#F2E8D5] font-handwritten font-bold"
+                style={{ background: 'rgba(246,239,227,0.12)', border: '1px solid rgba(246,239,227,0.15)' }}
+              >
+                <RipomaLogo variant="icon" height={14} />
+                <span>185 Pts</span>
               </div>
             )}
 
-            {/* Open Drawer Cart Trigger */}
-            <button 
+            {/* Cart button */}
+            <button
               onClick={() => setIsCartOpen(true)}
-              className="relative p-2.5 text-[#F6EFE3]/85 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-full cursor-pointer"
+              className="relative p-2.5 text-[#F2E8D5]/90 hover:text-white transition-colors rounded-full cursor-pointer"
+              style={{ background: 'rgba(255,255,255,0.08)' }}
               aria-label="Open Cart"
             >
               <ShoppingBag className="w-4.5 h-4.5 stroke-[1.5]" />
               {totalCartItems > 0 && (
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-[9px] font-black leading-none text-white bg-[#A65D3D] rounded-full transform translate-x-1.5 -translate-y-1.5 border border-[#2F4B3C]">
+                <span
+                  className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-[9px] font-black leading-none text-white rounded-full border-2 border-[#5C4630] transform translate-x-1.5 -translate-y-1.5 font-sans"
+                  style={{ background: '#B5484D' }}
+                >
                   {totalCartItems}
                 </span>
               )}
             </button>
 
-            {/* Profile actions dropdown */}
+            {/* Account dropdown */}
             {user ? (
               <div className="relative">
                 <button
                   onClick={() => setProfileDropdown(!profileDropdown)}
-                  className="flex items-center gap-2 bg-[#F6EFE3]/10 hover:bg-[#F6EFE3]/15 px-4 py-2.5 rounded-lg transition-colors font-medium border border-white/5 cursor-pointer text-xs"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-handwritten font-bold text-sm border cursor-pointer"
+                  style={{ background: 'rgba(246,239,227,0.1)', border: '1px solid rgba(246,239,227,0.15)' }}
                 >
                   <User className="w-3.5 h-3.5" />
                   <span>{user.name.split(' ')[0]}</span>
-                  <ChevronDown className="w-3 h-3 text-[#2F4B3C]" />
+                  <ChevronDown className="w-3 h-3 opacity-70" />
                 </button>
 
                 {profileDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 text-gray-800 border border-gray-100 z-50">
+                  <div
+                    className="absolute right-0 mt-2 w-48 rounded-xl shadow-xl py-1 z-50 border"
+                    style={{ background: '#F2E8D5', borderColor: '#C5AD8C' }}
+                  >
                     {(user.role === 'admin' || user.role === 'worker') && (
                       <Link
                         to="/admin"
                         onClick={() => setProfileDropdown(false)}
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs hover:bg-[#F6EFE3] text-[#2F4B3C] font-semibold"
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold hover:bg-[#D9C4A3] transition-colors"
+                        style={{ color: '#5C4630' }}
                       >
                         <LayoutDashboard className="w-4 h-4 text-[#A65D3D]" />
                         Admin Dashboard
@@ -133,15 +148,16 @@ const Navbar = () => {
                     <Link
                       to="/profile"
                       onClick={() => setProfileDropdown(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs hover:bg-[#F6EFE3]"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs hover:bg-[#D9C4A3] transition-colors"
+                      style={{ color: '#3A2B1D' }}
                     >
-                      <User className="w-4 h-4 text-[#2F4B3C]/50" />
+                      <User className="w-4 h-4 text-[#8A6A4B]" />
                       My Dashboard
                     </Link>
-                    <hr className="my-1 border-gray-100" />
+                    <hr className="my-1 border-[#C5AD8C]/50" />
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 text-left font-medium cursor-pointer"
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-[#B5484D] hover:bg-red-50 text-left font-bold cursor-pointer transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       Logout
@@ -152,29 +168,33 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/profile"
-                className="bg-[#A65D3D] hover:bg-[#A65D3D]/90 text-white px-5 py-2.5 rounded-lg text-xs font-semibold transition-colors shadow-sm uppercase tracking-wider"
+                className="font-handwritten font-bold text-sm px-5 py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md"
+                style={{ background: '#2F4B3C', color: '#F2E8D5', border: '1px solid rgba(255,255,255,0.15)' }}
               >
                 Sign In
               </Link>
             )}
           </div>
 
-          {/* Mobile menu trigger */}
+          {/* Mobile buttons */}
           <div className="md:hidden flex items-center gap-3">
-            <button 
+            <button
               onClick={() => setIsCartOpen(true)}
               className="relative p-2 text-white/90 hover:text-white"
             >
               <ShoppingBag className="w-5 h-5 stroke-[1.75]" />
               {totalCartItems > 0 && (
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-[9px] font-black text-white bg-[#A65D3D] rounded-full transform translate-x-1 -translate-y-1">
+                <span
+                  className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-[9px] font-black text-white rounded-full transform translate-x-1 -translate-y-1"
+                  style={{ background: '#B5484D' }}
+                >
                   {totalCartItems}
                 </span>
               )}
             </button>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md hover:bg-white/5 focus:outline-none cursor-pointer"
+              className="inline-flex items-center justify-center p-2 rounded-md hover:bg-white/10 focus:outline-none cursor-pointer"
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -182,24 +202,35 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer */}
       {isOpen && (
-        <div className="md:hidden bg-[#2F4B3C] border-t border-white/5 px-4 pt-2 pb-6 space-y-2 text-left animate-fade-in-up">
-          <Link to="/" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 rounded-md hover:bg-white/5 text-sm">Home</Link>
-          <Link to="/catalog" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 rounded-md hover:bg-white/5 text-sm">Shop Catalog</Link>
-          <Link to="/about" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 rounded-md hover:bg-white/5 text-sm">Our Story</Link>
-          <Link to="/contact" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 rounded-md hover:bg-white/5 text-sm">Contact</Link>
+        <div
+          className="md:hidden px-4 pt-2 pb-6 space-y-1 text-left animate-fade-in-up border-t"
+          style={{ background: '#3A2B1D', borderColor: 'rgba(255,255,255,0.08)' }}
+        >
+          {[['/', 'Home'], ['/catalog', 'Shop Catalog'], ['/about', 'Our Story'], ['/contact', 'Contact']].map(([to, label]) => (
+            <Link
+              key={to}
+              to={to}
+              onClick={() => setIsOpen(false)}
+              className="block px-3 py-2.5 rounded-md font-handwritten font-bold text-base hover:bg-white/10 text-[#F2E8D5]"
+            >
+              {label}
+            </Link>
+          ))}
           <hr className="border-white/10 my-2" />
           {user ? (
             <>
               {(user.role === 'admin' || user.role === 'worker') && (
-                <Link to="/admin" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 rounded-md text-[#2F4B3C] font-bold text-sm">Admin Dashboard</Link>
+                <Link to="/admin" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 rounded-md font-bold font-handwritten text-[#C99A3A] text-base">Admin Dashboard</Link>
               )}
-              <Link to="/profile" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 rounded-md text-sm">My Dashboard</Link>
-              <button onClick={handleLogout} className="w-full text-left block px-3 py-2.5 rounded-md text-red-400 text-sm">Logout</button>
+              <Link to="/profile" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 rounded-md font-handwritten text-base text-[#F2E8D5]">My Dashboard</Link>
+              <button onClick={handleLogout} className="w-full text-left block px-3 py-2.5 rounded-md font-handwritten text-[#B5484D] text-base">Logout</button>
             </>
           ) : (
-            <Link to="/profile" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 text-center bg-[#A65D3D] text-white font-bold rounded-lg text-sm">Sign In</Link>
+            <Link to="/profile" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 text-center font-handwritten font-bold text-base rounded-lg text-[#F2E8D5]" style={{ background: '#2F4B3C' }}>
+              Sign In
+            </Link>
           )}
         </div>
       )}

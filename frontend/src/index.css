@@ -1,28 +1,34 @@
 @import "tailwindcss";
 
 @theme {
+  --font-handwritten: "Caveat", "Kalam", cursive;
   --font-serif: "Fraunces", Georgia, serif;
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: "Inter", "Manrope", system-ui, sans-serif;
 
-  /* Aliasing old tokens to preserve MERN styling tags */
+  /* Rustic Handcrafted Palette Tokens */
+  --color-ripoma-black: #0A0A0A;
+  --color-kraft-tan: #D9C4A3;
+  --color-barnwood-brown: #5C4630;
+  --color-chalkboard: #2B2B2B;
+  --color-faded-stamp: #B5484D;
+  --color-coconut-cream: #F6EFE3;
+
+  /* Legacy aliases */
   --color-farm-green-dark: #2F4B3C;
   --color-farm-green-medium: #3E6B6B;
   --color-farm-cream: #F6EFE3;
-  --color-farm-earth: #8A6A4B;
+  --color-farm-earth: #5C4630;
   --color-farm-gold: #A65D3D;
   --color-farm-slate: #3E6B6B;
   --color-farm-yellow: #C99A3A;
 
-  /* Sourcing Custom Sri Lankan design tokens */
-  --color-tea-green: #2F4B3C;
-  --color-lagoon-teal: #3E6B6B;
-  --color-coconut-cream: #F6EFE3;
-  --color-palmyrah-brown: #8A6A4B;
-  --color-cinnamon-bark: #A65D3D;
-  --color-turmeric-ochre: #C99A3A;
-  
   --animate-float: float 3s ease-in-out infinite;
   --animate-fade-in-up: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Handwritten font utility */
+.font-handwritten {
+  font-family: 'Caveat', 'Kalam', cursive;
 }
 
 @keyframes float {
@@ -47,44 +53,58 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F6EFE3;
+  background: #D9C4A3;
 }
 ::-webkit-scrollbar-thumb {
-  background: #A65D3D;
+  background: #5C4630;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #8A6A4B;
+  background: #3A2B1D;
 }
 
-/* Glassmorphism utility */
-.glass {
-  background: rgba(246, 239, 227, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(138, 106, 75, 0.08);
+/* Kraft paper background texture */
+.bg-texture-kraft {
+  background-color: #D9C4A3;
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
-.glass-dark {
-  background: rgba(47, 75, 60, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Woven basket texture */
+.bg-texture-basket {
+  background-color: #5C4630;
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0z' fill='%234A3826' fill-opacity='0.25'/%3E%3Cpath d='M20 20h20v20H20z' fill='%234A3826' fill-opacity='0.25'/%3E%3Cpath d='M0 20h20v20H0z' fill='%236D533A' fill-opacity='0.15'/%3E%3Cpath d='M20 0h20v20H20z' fill='%236D533A' fill-opacity='0.15'/%3E%3C/svg%3E");
 }
 
-/* Authentic Sri Lankan cadjan woven palm-leaf background texture */
-.bg-texture-linen,
-.bg-texture-kraft,
-.bg-texture-wood,
-.bg-texture-cadjan {
-  background-color: #F6EFE3;
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l30 30L60 0M0 60l30-30 30 30' fill='none' stroke='%238A6A4B' stroke-width='1' stroke-opacity='0.035'/%3E%3Cpath d='M30 0v60M0 30h60' fill='none' stroke='%238A6A4B' stroke-width='0.5' stroke-opacity='0.015'/%3E%3C/svg%3E");
+/* Chalkboard texture badge */
+.badge-chalkboard {
+  background-color: #2B2B2B;
+  color: #F6EFE3;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+  border: 1px dashed rgba(246, 239, 227, 0.3);
+  font-family: 'Caveat', cursive;
+}
+
+/* Hand-stamped ink seal */
+.stamped-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  border: 2px dashed #B5484D;
+  color: #B5484D;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  text-transform: uppercase;
+  transform: rotate(-6deg);
+  letter-spacing: 0.05em;
+  background: rgba(181, 72, 77, 0.06);
 }
 
 body {
   background-color: #F6EFE3;
   color: #2F4B3C;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', 'Manrope', system-ui, sans-serif;
   overflow-x: hidden;
 }
 

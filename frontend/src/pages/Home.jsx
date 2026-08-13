@@ -3,20 +3,21 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
-import { 
-  WaveIcon, HenIcon, FishingNetIcon, FeatherIcon, 
-  SunFieldIcon, BasketIcon, CrateIcon, QRTraceIcon, WaxSealBadge 
+import {
+  WaveIcon, HenIcon, FeatherIcon,
+  SunFieldIcon, BasketIcon, CrateIcon, QRTraceIcon, WaxSealBadge
 } from '../components/FarmIcons';
+import {
+  TornEdgeDivider, StampedSeal, WoodenCrateFrame
+} from '../components/RusticComponents';
 import { ArrowRight, Star, AlertTriangle } from 'lucide-react';
 import { NotificationContext } from '../context/NotificationContext';
-
 import RipomaLogo from '../components/RipomaLogo';
 
 const Home = () => {
   const { showToast } = useContext(NotificationContext);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [newsEmail, setNewsEmail] = useState('');
   const [newsError, setNewsError] = useState('');
   const [subscribedEmails, setSubscribedEmails] = useState(['newsletter@ripomafarm.com', 'admin@ripomafarm.com']);
@@ -25,10 +26,9 @@ const Home = () => {
     const fetchProducts = async () => {
       try {
         const { data } = await axios.get('/api/products');
-        // Show first 4 products
         setFeaturedProducts(data.slice(0, 4));
-      } catch (err) {
-        console.error('Error fetching featured products:', err);
+      } catch {
+        // use empty state
       } finally {
         setLoading(false);
       }
@@ -36,535 +36,544 @@ const Home = () => {
     fetchProducts();
   }, []);
 
-  // Animation variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } }
   };
-
-  const staggerContainer = {
+  const stagger = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15
-      }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
   };
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-[#F6EFE3] flex flex-col items-center justify-center gap-4">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4" style={{ background: '#F2E8D5' }}>
         <motion.div
           initial={{ scale: 0.7, opacity: 0 }}
           animate={{ scale: [0.7, 1.1, 1], opacity: 1 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+          transition={{ duration: 0.7 }}
         >
           <RipomaLogo variant="icon" color="color" height={72} className="animate-pulse" />
         </motion.div>
-        <span className="text-[10px] uppercase tracking-widest text-[#2F4B3C] font-bold">
-          RIPOMA Farm — Freshness Gate
+        <span className="font-handwritten text-xl text-[#5C4630] tracking-wider">
+          Gathering today's harvest…
         </span>
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-[#F6EFE3] overflow-hidden">
-      
-      {/* 1. HERO SECTION */}
-      <section className="relative min-h-[92vh] flex items-center bg-[#2F4B3C] text-white py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Background texture & image */}
-        <div className="absolute inset-0 z-0 opacity-15 mix-blend-overlay">
-          <img 
-            src="https://images.unsplash.com/photo-1548550022-cbf418b711d9?auto=format&fit=crop&w=1600&q=80" 
-            alt="Sunrise over farm fields" 
+    <div className="w-full overflow-hidden" style={{ background: '#F2E8D5' }}>
+
+      {/* ═══════════════════════════════════════
+          1. HERO SECTION
+      ═══════════════════════════════════════ */}
+      <section className="relative min-h-[94vh] flex items-center overflow-hidden">
+        {/* Full-bleed farm photo */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1500076656116-558758c991c1?auto=format&fit=crop&w=1800&q=85"
+            alt="RIPOMA farm at sunrise"
             className="w-full h-full object-cover"
           />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(10,10,10,0.65) 0%, rgba(10,10,10,0.30) 60%, rgba(10,10,10,0.10) 100%)' }} />
         </div>
-        <div className="absolute inset-0 bg-texture-linen opacity-10 z-0 pointer-events-none"></div>
 
-        <div className="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <motion.div 
-            className="lg:col-span-7 space-y-8 text-left"
+        {/* Kraft-paper copy panel */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+          <motion.div
+            className="lg:col-span-7"
             initial="hidden"
             animate="visible"
-            variants={staggerContainer}
+            variants={stagger}
           >
-            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 border border-white/20 px-3.5 py-1 rounded-full bg-white/5 backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-[#2F4B3C] animate-pulse"></span>
-              <span className="text-xs uppercase tracking-widest text-[#F6EFE3]">Fresh from coop & coast today</span>
+            {/* Hand-stamped "today's arrival" badge */}
+            <motion.div variants={fadeInUp} className="mb-6 inline-block">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest" style={{ background: 'rgba(217,196,163,0.15)', border: '1px solid rgba(217,196,163,0.3)', color: '#D9C4A3' }}>
+                <span className="w-2 h-2 rounded-full bg-[#5FAE3E] animate-pulse inline-block" />
+                Fresh from the coop & coast — today
+              </div>
             </motion.div>
-            
-            <motion.h1 
-              variants={fadeInUp} 
-              className="text-4xl sm:text-6xl font-serif text-white tracking-tight leading-[1.1] max-w-2xl font-semibold"
+
+            {/* Hand-lettered hero headline */}
+            <motion.h1
+              variants={fadeInUp}
+              className="font-handwritten text-5xl sm:text-7xl leading-tight mb-6"
+              style={{ color: '#F2E8D5', textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
             >
-              Farm Fresh Products Delivered With Quality <span className="text-[#2F4B3C] italic font-normal">You Can Trust</span>
+              Real food,<br />
+              <span style={{ color: '#C99A3A' }}>honest hands.</span>
             </motion.h1>
-            
-            <motion.p 
-              variants={fadeInUp} 
-              className="text-base sm:text-lg text-[#F6EFE3]/80 max-w-xl font-light leading-relaxed font-sans"
+
+            <motion.p
+              variants={fadeInUp}
+              className="text-base sm:text-lg font-sans font-light leading-relaxed mb-8 max-w-xl"
+              style={{ color: 'rgba(242,232,213,0.85)' }}
             >
-              Today's catch, this morning's eggs, pasture-raised chicken — packed fresh, delivered honest. Gathered with care, shipped straight to your doorstep.
+              Today's catch, this morning's eggs, pasture-raised chicken — packed by hand,
+              shipped honest. Gathered from RIPOMA's coastal fields directly to your table.
             </motion.p>
-            
-            <motion.div variants={fadeInUp} className="flex flex-wrap gap-4 pt-2">
-              <Link 
-                to="/catalog" 
-                className="bg-[#A65D3D] hover:bg-[#A65D3D]/90 text-white font-medium px-8 py-3.5 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center gap-2 tracking-wide font-sans text-sm"
+
+            <motion.div variants={fadeInUp} className="flex flex-wrap gap-4">
+              <Link
+                to="/catalog"
+                className="font-handwritten font-bold text-lg px-8 py-3.5 rounded-lg transition-all shadow-lg hover:shadow-xl flex items-center gap-2 hover:-translate-y-0.5"
+                style={{ background: '#5C4630', color: '#F2E8D5', border: '2px solid #3A2B1D' }}
               >
-                Shop Products <ArrowRight className="w-4 h-4" />
+                Shop the Harvest <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link 
-                to="/about" 
-                className="bg-transparent hover:bg-white/5 border border-white/30 text-white font-medium px-8 py-3.5 rounded-lg transition-all tracking-wide font-sans text-sm"
+              <Link
+                to="/about"
+                className="font-handwritten font-bold text-lg px-8 py-3.5 rounded-lg transition-all"
+                style={{ background: 'rgba(242,232,213,0.1)', color: '#F2E8D5', border: '2px solid rgba(242,232,213,0.3)' }}
               >
-                Learn Our Process
+                Our Story
               </Link>
             </motion.div>
           </motion.div>
 
-          {/* Hero Featured Visual */}
-          <motion.div 
-            className="lg:col-span-5 relative"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+          {/* Hero floating stamp card */}
+          <motion.div
+            className="lg:col-span-5 hidden lg:flex flex-col items-center gap-6"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.9, delay: 0.3 }}
           >
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 aspect-[4/5] max-w-sm mx-auto lg:max-w-none">
-              <img 
-                src="https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=800&q=80" 
-                alt="Farmer holding fresh egg basket in morning light" 
+            <div
+              className="relative rounded-2xl overflow-hidden aspect-[4/5] max-w-xs w-full shadow-2xl"
+              style={{ border: '4px solid #D9C4A3' }}
+            >
+              <img
+                src="https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=700&q=80"
+                alt="Fresh farm eggs in morning light"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#2F4B3C]/70 via-transparent to-transparent"></div>
-              
-              {/* Floating Wax Badge */}
-              <div className="absolute bottom-6 right-6">
-                <WaxSealBadge text="HAND PICKED" className="w-20 h-20" />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(58,43,29,0.6) 0%, transparent 60%)' }} />
+              <div className="absolute bottom-5 right-5">
+                <StampedSeal label="Hand Picked" size={80} color="#C99A3A" />
               </div>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* 2. OUR FARM STORY STRIP */}
-      <section className="bg-texture-linen py-20 px-4 sm:px-6 lg:px-8 border-b border-[#8A6A4B]/10">
+      {/* Torn paper edge between hero and next section */}
+      <TornEdgeDivider color="#F2E8D5" />
+
+      {/* ═══════════════════════════════════════
+          2. FARM STORY STRIP
+      ═══════════════════════════════════════ */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8" style={{ background: '#F2E8D5' }}>
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
           <div className="md:col-span-5">
-            <div className="rounded-2xl overflow-hidden border border-[#8A6A4B]/10 shadow-lg aspect-square">
-              <img 
-                src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=700&q=80" 
-                alt="Poultry grazing on green pastures" 
+            <div className="rounded-2xl overflow-hidden shadow-lg aspect-square" style={{ border: '3px solid #C5AD8C' }}>
+              <img
+                src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=700&q=80"
+                alt="Poultry grazing on green pastures"
                 className="w-full h-full object-cover"
               />
             </div>
           </div>
-          <div className="md:col-span-7 space-y-6 text-left">
-            <span className="text-xs uppercase tracking-widest text-[#A65D3D] font-bold">Rooted in Sourcing</span>
-            <h2 className="text-3xl font-serif text-[#2F4B3C] font-semibold leading-tight">Gathered from the Coast, Soil, and Open Grasslands</h2>
-            <p className="text-[#8A6A4B] font-sans font-light leading-relaxed text-sm">
-              We wake up when the mist is still hanging over the coops. We pull nets from the salt-sprayed tides at dawn, and collect warm eggs from pasture-raised hens before the sun hits the fields. No shortcuts, no artificial enhancers. Just food raised with soil, wind, and honest hands.
+          <div className="md:col-span-7 space-y-5">
+            <span className="font-handwritten font-bold text-lg" style={{ color: '#A65D3D' }}>Rooted in Honest Soil</span>
+            <h2 className="font-handwritten text-4xl sm:text-5xl leading-tight font-bold" style={{ color: '#3A2B1D' }}>
+              Gathered from coast,<br /> soil & open grass
+            </h2>
+            <p className="text-sm font-sans font-light leading-relaxed" style={{ color: '#5C4630' }}>
+              We wake when the mist still hangs over the coops. We pull nets from salt-sprayed tides at dawn,
+              collect warm eggs before the sun hits the fields. No shortcuts, no artificial enhancers.
+              Just food raised with soil, wind, and honest hands.
             </p>
-            <Link to="/about" className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest font-bold text-[#2F4B3C] hover:text-[#A65D3D] transition-colors">
-              Meet the Farmers <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. PRODUCT CATEGORIES SECTION */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <span className="text-xs uppercase tracking-widest text-[#A65D3D] font-bold">Harvest Categories</span>
-            <h2 className="text-3xl sm:text-4xl font-serif text-[#2F4B3C] font-semibold">Honest Sourcing, Distinct Identities</h2>
-            <p className="text-gray-500 font-light text-sm">Every category carries its own rhythm—matured by sea air, sun warmth, or lush pasture greens.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Dry Fish Card */}
-            <Link to="/catalog?category=Dry Fish" className="group block space-y-4 text-left">
-              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gray-100 shadow-md transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-lg">
-                <img 
-                  src="https://images.unsplash.com/photo-1534482421-64566f976cfa?auto=format&fit=crop&w=600&q=80" 
-                  alt="Sun drying anchovies" 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-[#3E6B6B]/10 mix-blend-multiply group-hover:opacity-0 transition-opacity"></div>
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-gray-200">
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-[#3E6B6B]">Slate Blue Tone</span>
-                </div>
-              </div>
-              <div className="px-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <WaveIcon className="w-5 h-5 text-[#3E6B6B]" />
-                  <h3 className="text-lg font-bold text-gray-900 font-sans">Premium Dry Fish</h3>
-                </div>
-                <p className="text-xs text-gray-500 font-light">Coastal air-cured, dried 3 days under solar protection. Rich, clean flavor.</p>
-                <span className="inline-block text-xs font-bold text-[#3E6B6B] pt-1">Explore Sourcing &rarr;</span>
-              </div>
-            </Link>
-
-            {/* Eggs Card */}
-            <Link to="/catalog?category=Eggs" className="group block space-y-4 text-left">
-              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gray-100 shadow-md transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-lg">
-                <img 
-                  src="https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=600&q=80" 
-                  alt="Brown farm eggs in nest" 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-[#C99A3A]/10 mix-blend-multiply group-hover:opacity-0 transition-opacity"></div>
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-gray-200">
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-[#A65D3D]">Warm Straw Gold</span>
-                </div>
-              </div>
-              <div className="px-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <HenIcon className="w-5 h-5 text-[#A65D3D]" />
-                  <h3 className="text-lg font-bold text-gray-900 font-sans">Farm Eggs</h3>
-                </div>
-                <p className="text-xs text-gray-500 font-light">Free-range, grain-fed brown eggs collected every morning before daylight.</p>
-                <span className="inline-block text-xs font-bold text-[#A65D3D] pt-1">Explore Sourcing &rarr;</span>
-              </div>
-            </Link>
-
-            {/* Chicken Card */}
-            <Link to="/catalog?category=Chicken" className="group block space-y-4 text-left">
-              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gray-100 shadow-md transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-lg">
-                <img 
-                  src="https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=600&q=80" 
-                  alt="Raw organic chicken breast cuts" 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-[#2F4B3C]/10 mix-blend-multiply group-hover:opacity-0 transition-opacity"></div>
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-gray-200">
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-[#2F4B3C]">Pasture Sage</span>
-                </div>
-              </div>
-              <div className="px-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <FeatherIcon className="w-5 h-5 text-[#2F4B3C]" />
-                  <h3 className="text-lg font-bold text-gray-900 font-sans">Organic Chicken</h3>
-                </div>
-                <p className="text-xs text-gray-500 font-light">Succulent dressed broiler cuts and whole options. Corn-fed, hormone-free.</p>
-                <span className="inline-block text-xs font-bold text-[#2F4B3C] pt-1">Explore Sourcing &rarr;</span>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. WHY CHOOSE US (WHITE SPACE & WHITESPACE-ORIENTED CARDS) */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-texture-kraft border-t border-b border-[#8A6A4B]/10">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <span className="text-xs uppercase tracking-widest text-[#A65D3D] font-bold font-sans">Quality Foundations</span>
-            <h2 className="text-3xl font-serif text-[#2F4B3C] font-semibold">Grown Honest, Delivered Whole</h2>
-            <p className="text-[#8A6A4B]/70 font-light text-sm font-sans">Minimalism rooted in soil. Four core values guiding every package we send.</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            
-            {/* Card 1: Farm Fresh */}
-            <div className="bg-white border border-[#8A6A4B]/10 rounded-2xl p-8 space-y-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-[#F6EFE3] rounded-xl flex items-center justify-center text-[#2F4B3C]">
-                <FeatherIcon className="w-6 h-6" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-[#2F4B3C] font-sans">Farm Fresh Quality</h3>
-                <p className="text-xs text-[#8A6A4B]/80 font-light leading-relaxed">
-                  Harvested at sunrise, packaged at noon, dispatched by night. You taste freshness, not refrigeration storage.
-                </p>
-              </div>
-            </div>
-
-            {/* Card 2: Sustainable */}
-            <div className="bg-white border border-[#8A6A4B]/10 rounded-2xl p-8 space-y-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-[#F6EFE3] rounded-xl flex items-center justify-center text-[#2F4B3C]">
-                <SunFieldIcon className="w-6 h-6" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-[#2F4B3C] font-sans">Sustainable Rearing</h3>
-                <p className="text-xs text-[#8A6A4B]/80 font-light leading-relaxed">
-                  Small-boat coastal fish nets, humane free-range hen barns, and solar-cured clean drying domes.
-                </p>
-              </div>
-            </div>
-
-            {/* Card 3: Fast Delivery */}
-            <div className="bg-white border border-[#8A6A4B]/10 rounded-2xl p-8 space-y-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-[#F6EFE3] rounded-xl flex items-center justify-center text-[#2F4B3C]">
-                <CrateIcon className="w-6 h-6" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-[#2F4B3C] font-sans">Direct Dispatch</h3>
-                <p className="text-xs text-[#8A6A4B]/80 font-light leading-relaxed">
-                  Temp-controlled boxes bypass third-party warehouses to deliver straight from coop doors to your doorstep.
-                </p>
-              </div>
-            </div>
-
-            {/* Card 4: Full Traceability */}
-            <div className="bg-white border border-[#8A6A4B]/10 rounded-2xl p-8 space-y-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-[#F6EFE3] rounded-xl flex items-center justify-center text-[#2F4B3C]">
-                <QRTraceIcon className="w-6 h-6" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-[#2F4B3C] font-sans">Full Traceability</h3>
-                <p className="text-xs text-[#8A6A4B]/80 font-light leading-relaxed">
-                  Every package highlights its specific coop of origin, batch identification, and exact harvest date.
-                </p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* 5. FEATURED PRODUCTS SECTION */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-gray-100 pb-6 gap-4">
-            <div className="text-left space-y-1.5">
-              <span className="text-xs uppercase tracking-widest text-[#A65D3D] font-bold font-sans">Freshly Sourced Picks</span>
-              <h2 className="text-3xl font-serif text-[#2F4B3C] font-semibold">This Morning's Harvest</h2>
-            </div>
-            <Link to="/catalog" className="text-[#2F4B3C] hover:text-[#A65D3D] font-bold text-xs uppercase tracking-widest flex items-center gap-1.5 transition-colors">
-              Browse Full Catalog <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {[1, 2, 3, 4].map(n => (
-                <div key={n} className="bg-[#F6EFE3]/50 rounded-2xl h-80 animate-pulse border border-[#8A6A4B]/5"></div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* 6. SEASONAL / HARVEST HIGHLIGHT SECTION */}
-      <section className="relative py-20 bg-[#2F4B3C] text-white overflow-hidden">
-        {/* Background grain */}
-        <div className="absolute inset-0 bg-texture-wood opacity-5 z-0 pointer-events-none"></div>
-        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          <span className="text-xs uppercase tracking-widest text-[#2F4B3C] font-bold font-sans">Seasonal Highlight</span>
-          <h2 className="text-3xl sm:text-5xl font-serif max-w-3xl mx-auto font-medium">
-            This Week's Harvest: Fresh Catch from the Morning Tide
-          </h2>
-          <p className="text-sm text-[#F6EFE3]/80 font-light max-w-xl mx-auto font-sans leading-relaxed">
-            Our coastal fishermen harvested fresh, premium anchovies off the shore line this week. Cured immediately under our solar drying beds for clean flavor.
-          </p>
-          <div className="pt-2">
-            <Link 
-              to="/catalog?category=Dry Fish" 
-              className="bg-[#A65D3D] hover:bg-[#A65D3D]/90 text-white font-medium px-8 py-3 rounded-lg text-xs uppercase tracking-widest font-sans inline-block transition-colors"
+            <Link
+              to="/about"
+              className="inline-flex items-center gap-1.5 font-handwritten font-bold text-base hover:gap-3 transition-all"
+              style={{ color: '#2F4B3C' }}
             >
-              Shop This Week's Catch
+              Meet the Farmers <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* 7. SUSTAINABILITY & PRACTICES */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-texture-linen border-t border-b border-[#8A6A4B]/10 text-left">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-          <div className="lg:col-span-7 space-y-12">
-            <div className="space-y-4">
-              <span className="text-xs uppercase tracking-widest text-[#A65D3D] font-bold">Traceable Commitments</span>
-              <h2 className="text-3xl font-serif text-[#2F4B3C] font-semibold">How We Respect the Land & Sea</h2>
-              <p className="text-gray-500 font-light text-sm max-w-xl">
-                We believe premium food starts with healthy soil and clean oceans. We commit to strict environmental and humane standards across our farming practices.
-              </p>
-            </div>
+      {/* Torn paper edge */}
+      <TornEdgeDivider color="#D9C4A3" />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <span className="text-sm font-bold text-[#2F4B3C] flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#A65D3D]"></span> Free-Range Humane Barns
-                </span>
-                <p className="text-xs text-[#8A6A4B] font-light leading-relaxed">
-                  Our birds roam free with natural daylight, fresh water, and pasture grasses. No cages, no overcrowding.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <span className="text-sm font-bold text-[#2F4B3C] flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#A65D3D]"></span> Coastal Artisanal Fishing
-                </span>
-                <p className="text-xs text-[#8A6A4B] font-light leading-relaxed">
-                  Partnered with local fishermen using line catches and non-invasive nets that respect marine biodiversity.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <span className="text-sm font-bold text-[#2F4B3C] flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#A65D3D]"></span> Compostable Kraft Packs
-                </span>
-                <p className="text-xs text-[#8A6A4B] font-light leading-relaxed">
-                  Low-waste wrapping, kraft box shipments, and biodegradable liners to decrease downstream pollution.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <span className="text-sm font-bold text-[#2F4B3C] flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#A65D3D]"></span> Zero Hormones or Short-cuts
-                </span>
-                <p className="text-xs text-[#8A6A4B] font-light leading-relaxed">
-                  Only natural feeds and sun cures. No growth chemicals, water-weight injections, or preservatives.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-5 flex flex-col items-center justify-center space-y-6">
-            <WaxSealBadge text="ORGANIC CERTIFIED" className="w-36 h-36" />
-            <div className="text-center">
-              <span className="text-xs font-bold text-[#2F4B3C] block font-serif">Original Seal of Freshness</span>
-              <span className="text-[10px] text-gray-400 block font-sans">Guaranteed direct farm dispatch</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 8. CUSTOMER REVIEWS */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white text-left">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <span className="text-xs uppercase tracking-widest text-[#A65D3D] font-bold">Honest Feedbacks</span>
-            <h2 className="text-3xl font-serif text-[#2F4B3C] font-semibold">Shared by Our Table</h2>
+      {/* ═══════════════════════════════════════
+          3. HARVEST CATEGORIES — Hanging signs
+      ═══════════════════════════════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8" style={{ background: '#D9C4A3' }}>
+        <div className="max-w-7xl mx-auto space-y-14">
+          <div className="text-center space-y-3">
+            <span className="font-handwritten font-bold text-lg" style={{ color: '#A65D3D' }}>Harvest Categories</span>
+            <h2 className="font-handwritten text-4xl sm:text-5xl font-bold" style={{ color: '#3A2B1D' }}>Honest Sourcing, Distinct Identities</h2>
+            <p className="text-sm font-sans font-light" style={{ color: '#5C4630' }}>
+              Each category carries its own rhythm — matured by sea air, sun warmth, or lush pasture.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Review 1 */}
-            <div className="border border-gray-100 bg-[#F6EFE3]/30 rounded-2xl p-8 space-y-6 text-left">
-              <div className="flex text-[#A65D3D]">
-                {[1,2,3,4,5].map(x => <Star key={x} className="w-4 h-4 fill-current" />)}
-              </div>
-              <p className="text-xs text-[#8A6A4B] italic leading-relaxed">
-                "The sun-dried anchovies are by far the cleanest dry fish I have ever purchased. No sand grit whatsoever and the packaging keeps the smell sealed. Perfect!"
-              </p>
-              <div className="flex items-center gap-3 border-t border-gray-100 pt-4">
-                <div className="w-8 h-8 rounded-full bg-[#2F4B3C] text-white flex items-center justify-center font-bold text-xs">
-                  M
+            {[
+              {
+                to: '/catalog?category=Dry Fish',
+                img: 'https://images.unsplash.com/photo-1534482421-64566f976cfa?auto=format&fit=crop&w=600&q=80',
+                alt: 'Sun-drying anchovies on coastal racks',
+                color: '#3E6B6B',
+                Icon: WaveIcon,
+                label: 'Coastal Air-Dried',
+                title: 'Premium Dry Fish',
+                desc: 'Coastal air-cured, dried 3 days under solar protection. Rich, clean flavor.',
+              },
+              {
+                to: '/catalog?category=Eggs',
+                img: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=600&q=80',
+                alt: 'Brown farm eggs in straw nest',
+                color: '#C99A3A',
+                Icon: HenIcon,
+                label: 'Warm Straw Gold',
+                title: 'Farm Eggs',
+                desc: 'Free-range grain-fed brown eggs collected every morning before daylight.',
+              },
+              {
+                to: '/catalog?category=Chicken',
+                img: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=600&q=80',
+                alt: 'Free-range organic chicken cuts',
+                color: '#2F4B3C',
+                Icon: FeatherIcon,
+                label: 'Pasture Sage',
+                title: 'Organic Chicken',
+                desc: 'Succulent dressed broiler cuts and whole options. Corn-fed, hormone-free.',
+              },
+            ].map(({ to, img, alt, color, Icon, label, title, desc }) => (
+              <Link key={to} to={to} className="group block">
+                {/* Twine hook at top of hanging sign */}
+                <div className="flex justify-center mb-1" aria-hidden="true">
+                  <svg viewBox="0 0 80 28" width="80" height="28">
+                    <circle cx="40" cy="10" r="5" fill="#D9C4A3" stroke="#8A6A4B" strokeWidth="1.5" />
+                    <line x1="40" y1="15" x2="40" y2="28" stroke="#8A6A4B" strokeWidth="1.2" />
+                  </svg>
                 </div>
-                <div>
-                  <h4 className="font-bold text-xs text-[#2F4B3C]">Marcus K.</h4>
-                  <p className="text-[10px] text-gray-400">Regular Sourcing Customer</p>
+                {/* Hanging sign card */}
+                <div
+                  className="rounded-xl overflow-hidden transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-2xl"
+                  style={{
+                    background: '#F2E8D5',
+                    border: '2px solid #C5AD8C',
+                    boxShadow: '0 6px 18px rgba(92,70,48,0.15)',
+                  }}
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <img src={img} alt={alt} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <div className="absolute top-3 left-3">
+                      <span className="font-handwritten font-bold text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(242,232,213,0.9)', color }}>
+                        {label}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-5 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Icon className="w-5 h-5" style={{ color }} />
+                      <h3 className="font-handwritten font-bold text-xl" style={{ color: '#3A2B1D' }}>{title}</h3>
+                    </div>
+                    <p className="text-xs text-[#5C4630] font-sans font-light leading-relaxed">{desc}</p>
+                    <span className="font-handwritten font-bold text-sm" style={{ color }}>Explore →</span>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            {/* Review 2 */}
-            <div className="border border-gray-100 bg-[#F6EFE3]/30 rounded-2xl p-8 space-y-6 text-left">
-              <div className="flex text-[#A65D3D]">
-                {[1,2,3,4,5].map(x => <Star key={x} className="w-4 h-4 fill-current" />)}
-              </div>
-              <p className="text-xs text-[#8A6A4B] italic leading-relaxed">
-                "We buy the box of 300 eggs every month for our bakery. The yolks are rich and deep orange, indicating real organic free-range poultry. Excellent service!"
-              </p>
-              <div className="flex items-center gap-3 border-t border-gray-100 pt-4">
-                <div className="w-8 h-8 rounded-full bg-[#2F4B3C] text-white flex items-center justify-center font-bold text-xs">
-                  S
-                </div>
-                <div>
-                  <h4 className="font-bold text-xs text-[#2F4B3C]">Sarah C.</h4>
-                  <p className="text-[10px] text-gray-400">Home Baker</p>
-                </div>
-              </div>
-            </div>
+      {/* Torn paper edge going into woven basket section */}
+      <TornEdgeDivider color="#5C4630" />
 
-            {/* Review 3 */}
-            <div className="border border-gray-100 bg-[#F6EFE3]/30 rounded-2xl p-8 space-y-6 text-left">
-              <div className="flex text-[#A65D3D]">
-                {[1,2,3,4,5].map(x => <Star key={x} className="w-4 h-4 fill-current" />)}
+      {/* ═══════════════════════════════════════
+          4. WHY CHOOSE US — Woven basket bg + hand-drawn icons
+      ═══════════════════════════════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-texture-basket" style={{ background: '#5C4630' }}>
+        <div className="max-w-7xl mx-auto space-y-14">
+          <div className="text-center space-y-3">
+            <span className="font-handwritten font-bold text-lg" style={{ color: '#C99A3A' }}>Quality Foundations</span>
+            <h2 className="font-handwritten text-4xl sm:text-5xl font-bold" style={{ color: '#F2E8D5' }}>Grown Honest, Delivered Whole</h2>
+            <p className="text-sm font-sans font-light" style={{ color: 'rgba(242,232,213,0.7)' }}>
+              Four core values guiding every package we send — rooted in soil, not boardrooms.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { Icon: FeatherIcon, title: 'Farm Fresh Quality', desc: 'Harvested at sunrise, packaged at noon, dispatched by night. You taste freshness, not cold storage.' },
+              { Icon: SunFieldIcon, title: 'Sustainable Rearing', desc: 'Small-boat fishing nets, humane free-range barns, and solar-cured clean drying domes.' },
+              { Icon: CrateIcon, title: 'Direct Dispatch', desc: 'Temp-controlled boxes bypass third-party warehouses to your doorstep from our coop doors.' },
+              { Icon: QRTraceIcon, title: 'Full Traceability', desc: 'Every package highlights its coop origin, batch ID, and exact harvest date.' },
+            ].map(({ Icon, title, desc }) => (
+              <div
+                key={title}
+                className="rounded-xl p-7 space-y-4 transition-all hover:-translate-y-1 hover:shadow-xl"
+                style={{
+                  background: 'rgba(242,232,213,0.08)',
+                  border: '1px solid rgba(242,232,213,0.15)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+                }}
+              >
+                {/* Hand-drawn icon in a sketchy circle */}
+                <div
+                  className="w-12 h-12 flex items-center justify-center rounded-full"
+                  style={{ background: 'rgba(201,154,58,0.15)', border: '1.5px dashed #C99A3A' }}
+                >
+                  <Icon className="w-6 h-6" style={{ color: '#C99A3A', strokeWidth: 1.6 }} />
+                </div>
+                <div className="space-y-1.5">
+                  <h3 className="font-handwritten font-bold text-lg" style={{ color: '#F2E8D5' }}>{title}</h3>
+                  <p className="text-xs font-sans font-light leading-relaxed" style={{ color: 'rgba(242,232,213,0.65)' }}>{desc}</p>
+                </div>
               </div>
-              <p className="text-xs text-[#8A6A4B] italic leading-relaxed">
-                "The boneless chicken breasts are tender and clean cut. Perfect portioning for meal prep, vacuum-packed to keep them frozen fresh. RIPOMA is my go-to."
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Torn paper edge */}
+      <TornEdgeDivider color="#F2E8D5" flip />
+
+      {/* ═══════════════════════════════════════
+          5. FEATURED PRODUCTS — Wooden crate frame
+      ═══════════════════════════════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8" style={{ background: '#F2E8D5' }}>
+        <div className="max-w-7xl mx-auto space-y-10">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end pb-5 gap-4" style={{ borderBottom: '2px dashed #C5AD8C' }}>
+            <div className="space-y-1">
+              <span className="font-handwritten font-bold text-lg" style={{ color: '#A65D3D' }}>Freshly Sourced Picks</span>
+              <h2 className="font-handwritten text-4xl sm:text-5xl font-bold" style={{ color: '#3A2B1D' }}>This Morning's Harvest</h2>
+            </div>
+            <Link
+              to="/catalog"
+              className="font-handwritten font-bold text-base flex items-center gap-1.5 hover:gap-3 transition-all"
+              style={{ color: '#5C4630' }}
+            >
+              Browse Full Catalog <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <WoodenCrateFrame>
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-2">
+                {[1, 2, 3, 4].map(n => (
+                  <div key={n} className="rounded-xl h-80 animate-pulse" style={{ background: '#C5AD8C' }} />
+                ))}
+              </div>
+            ) : featuredProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-2">
+                {featuredProducts.map(product => (
+                  <ProductCard key={product._id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 space-y-3">
+                <BasketIcon className="w-16 h-16 mx-auto" style={{ color: '#8A6A4B' }} />
+                <p className="font-handwritten text-2xl" style={{ color: '#5C4630' }}>The basket is being filled…</p>
+                <p className="text-sm font-sans font-light" style={{ color: '#8A6A4B' }}>Check back soon for today's harvest.</p>
+                <Link to="/catalog" className="inline-block font-handwritten font-bold text-base mt-2" style={{ color: '#2F4B3C' }}>
+                  Browse Full Catalog →
+                </Link>
+              </div>
+            )}
+          </WoodenCrateFrame>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          6. SEASONAL HIGHLIGHT — Barnwood dark banner
+      ═══════════════════════════════════════ */}
+      <section className="relative py-20 overflow-hidden" style={{ background: '#3A2B1D' }}>
+        <div className="absolute inset-0 bg-texture-basket opacity-20 pointer-events-none" />
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+          <div className="flex justify-center">
+            <StampedSeal label="This Week's Catch" size={90} color="#C99A3A" />
+          </div>
+          <h2 className="font-handwritten text-4xl sm:text-5xl font-bold" style={{ color: '#F2E8D5' }}>
+            Fresh Catch from the Morning Tide
+          </h2>
+          <p className="text-sm font-sans font-light max-w-xl mx-auto leading-relaxed" style={{ color: 'rgba(242,232,213,0.75)' }}>
+            Our coastal fishermen harvested premium anchovies this week. Cured immediately under our solar drying beds for clean, rich flavor.
+          </p>
+          <Link
+            to="/catalog?category=Dry Fish"
+            className="inline-block font-handwritten font-bold text-lg px-8 py-3.5 rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
+            style={{ background: '#5C4630', color: '#F2E8D5', border: '2px solid #8A6A4B' }}
+          >
+            Shop This Week's Catch
+          </Link>
+        </div>
+      </section>
+
+      {/* Torn paper edge */}
+      <TornEdgeDivider color="#F2E8D5" />
+
+      {/* ═══════════════════════════════════════
+          7. SUSTAINABILITY & PRACTICES
+      ═══════════════════════════════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8" style={{ background: '#F2E8D5' }}>
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+          <div className="lg:col-span-7 space-y-10">
+            <div className="space-y-4">
+              <span className="font-handwritten font-bold text-lg" style={{ color: '#A65D3D' }}>Traceable Commitments</span>
+              <h2 className="font-handwritten text-4xl sm:text-5xl font-bold leading-tight" style={{ color: '#3A2B1D' }}>How we respect the land & sea</h2>
+              <p className="text-sm font-sans font-light max-w-xl leading-relaxed" style={{ color: '#5C4630' }}>
+                We believe premium food starts with healthy soil and clean oceans. We commit to strict environmental and humane standards across every farming practice.
               </p>
-              <div className="flex items-center gap-3 border-t border-gray-100 pt-4">
-                <div className="w-8 h-8 rounded-full bg-[#2F4B3C] text-white flex items-center justify-center font-bold text-xs">
-                  D
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-7">
+              {[
+                { title: 'Free-Range Humane Barns', desc: 'Our birds roam free with natural daylight, fresh water, and pasture grasses. No cages, no overcrowding.' },
+                { title: 'Coastal Artisanal Fishing', desc: 'Partnered with local fishermen using line catches and non-invasive nets that respect marine biodiversity.' },
+                { title: 'Compostable Kraft Packs', desc: 'Low-waste wrapping, kraft box shipments, and biodegradable liners to decrease downstream pollution.' },
+                { title: 'Zero Hormones', desc: 'Only natural feeds and sun cures. No growth chemicals, water-weight injections, or preservatives.' },
+              ].map(({ title, desc }) => (
+                <div key={title} className="space-y-2">
+                  <span className="font-handwritten font-bold text-base flex items-center gap-2" style={{ color: '#3A2B1D' }}>
+                    <span className="w-2 h-2 rounded-full inline-block" style={{ background: '#C99A3A' }} />
+                    {title}
+                  </span>
+                  <p className="text-xs font-sans font-light leading-relaxed pl-4" style={{ color: '#5C4630' }}>{desc}</p>
                 </div>
-                <div>
-                  <h4 className="font-bold text-xs text-[#2F4B3C]">David R.</h4>
-                  <p className="text-[10px] text-gray-400">Fitness Coach</p>
-                </div>
-              </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 flex flex-col items-center justify-center space-y-4">
+            <WaxSealBadge text="ORGANIC CERTIFIED" className="w-40 h-40" />
+            <div className="text-center">
+              <span className="font-handwritten font-bold text-lg block" style={{ color: '#3A2B1D' }}>Original Seal of Freshness</span>
+              <span className="text-xs font-sans font-light block" style={{ color: '#8A6A4B' }}>Guaranteed direct farm dispatch</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 9. NEWSLETTER SECTION */}
-      <section className="bg-texture-kraft py-20 border-t border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          <span className="text-xs uppercase tracking-widest text-[#A65D3D] font-bold">Homestead Newsletter</span>
-          <h2 className="text-2xl sm:text-3xl font-serif text-[#2F4B3C] font-semibold">Join the Weekly Harvest List</h2>
-          <p className="text-xs text-[#8A6A4B] max-w-md mx-auto font-light leading-relaxed">
-            Get weekly harvest updates, coastal arrivals, and fresh coop availability directly in your inbox. Raised honest, sent clean.
-          </p>
-          <form 
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!newsEmail.trim()) {
-                setNewsError('Email address is required');
-                return;
-              }
-              if (!/\S+@\S+\.\S+/.test(newsEmail)) {
-                setNewsError('Invalid email address format');
-                return;
-              }
-              if (subscribedEmails.includes(newsEmail.toLowerCase().trim())) {
-                showToast("You're already subscribed!", 'info');
-                setNewsError('');
-                setNewsEmail('');
-                return;
-              }
-              setSubscribedEmails([...subscribedEmails, newsEmail.toLowerCase().trim()]);
-              showToast('Subscribed to harvest list successfully!', 'success');
-              setNewsEmail('');
-              setNewsError('');
-            }}
-            className="max-w-md mx-auto space-y-2 pt-2"
-          >
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <input 
-                type="email" 
-                placeholder="Your email address" 
-                value={newsEmail}
-                onChange={(e) => {
-                  setNewsEmail(e.target.value);
-                  if (newsError) setNewsError('');
+      {/* ═══════════════════════════════════════
+          8. CUSTOMER REVIEWS
+      ═══════════════════════════════════════ */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-texture-kraft" style={{ background: '#D9C4A3' }}>
+        <div className="max-w-7xl mx-auto space-y-14">
+          <div className="text-center space-y-3">
+            <span className="font-handwritten font-bold text-lg" style={{ color: '#A65D3D' }}>Honest Feedback</span>
+            <h2 className="font-handwritten text-4xl sm:text-5xl font-bold" style={{ color: '#3A2B1D' }}>Shared by our table</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
+            {[
+              { initial: 'M', name: 'Marcus K.', role: 'Regular Customer', quote: '"The sun-dried anchovies are by far the cleanest dry fish I\'ve purchased. No grit and the packaging keeps the smell sealed perfectly!"' },
+              { initial: 'S', name: 'Sarah C.', role: 'Home Baker', quote: '"We buy the 300-egg box every month for our bakery. The yolks are rich and deep orange — real organic free-range poultry. Excellent!"' },
+              { initial: 'D', name: 'David R.', role: 'Fitness Coach', quote: '"The boneless chicken breasts are tender and clean cut. Perfect portioning for meal prep, vacuum-packed fresh. RIPOMA is my go-to."' },
+            ].map(({ initial, name, role, quote }) => (
+              <div
+                key={name}
+                className="rounded-xl p-7 space-y-5 transition-all hover:-translate-y-1 hover:shadow-lg"
+                style={{
+                  background: '#F2E8D5',
+                  border: '1.5px solid #C5AD8C',
+                  boxShadow: '0 3px 14px rgba(92,70,48,0.08)',
                 }}
-                className={`w-full bg-white text-xs border outline-none rounded-md px-4 py-3 text-gray-800 transition-all font-sans input-field ${
-                  newsError ? 'input-invalid' : 'border-gray-300 focus:border-[#2F4B3C] focus:ring-1'
-                }`}
-              />
-              <button 
-                type="submit" 
-                className="w-full sm:w-auto bg-[#2F4B3C] hover:bg-[#A65D3D] text-white font-bold px-6 py-3 rounded-md text-xs uppercase tracking-wider transition-colors shrink-0 font-sans cursor-pointer"
               >
-                Subscribe
-              </button>
+                <div className="flex text-[#C99A3A]">
+                  {[1,2,3,4,5].map(x => <Star key={x} className="w-4 h-4 fill-current" />)}
+                </div>
+                <p className="text-sm font-sans italic leading-relaxed" style={{ color: '#5C4630' }}>{quote}</p>
+                <div className="flex items-center gap-3 pt-2" style={{ borderTop: '1px dashed #C5AD8C' }}>
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center font-handwritten font-bold text-base text-[#F2E8D5]"
+                    style={{ background: '#5C4630' }}
+                  >
+                    {initial}
+                  </div>
+                  <div>
+                    <h4 className="font-handwritten font-bold text-sm" style={{ color: '#3A2B1D' }}>{name}</h4>
+                    <p className="text-[10px] font-sans" style={{ color: '#8A6A4B' }}>{role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Torn paper edge into newsletter */}
+      <TornEdgeDivider color="#F2E8D5" />
+
+      {/* ═══════════════════════════════════════
+          9. NEWSLETTER — Postcard / note-card style
+      ═══════════════════════════════════════ */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8" style={{ background: '#F2E8D5' }}>
+        <div className="max-w-2xl mx-auto">
+          {/* The postcard card */}
+          <div
+            className="rounded-2xl p-10 text-center space-y-6 relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(145deg, #F2E8D5 0%, #EAD9BE 100%)',
+              border: '2px dashed #C5AD8C',
+              boxShadow: '0 6px 32px rgba(92,70,48,0.15)',
+            }}
+          >
+            {/* Top stamp decoration */}
+            <div className="absolute top-4 right-4">
+              <StampedSeal label="Join Us" size={58} color="#2F4B3C" />
             </div>
-            {newsError && (
-              <span className="text-red-500 font-bold text-[9px] tracking-wide flex items-center gap-1 justify-center animate-pulse pt-1 select-none">
-                <AlertTriangle className="w-3 h-3 shrink-0" /> {newsError}
-              </span>
-            )}
-          </form>
+
+            <div className="space-y-2">
+              <span className="font-handwritten font-bold text-lg" style={{ color: '#A65D3D' }}>Homestead Newsletter</span>
+              <h2 className="font-handwritten text-4xl font-bold" style={{ color: '#3A2B1D' }}>Join the Farm Family</h2>
+            </div>
+            <p className="text-sm font-sans font-light leading-relaxed" style={{ color: '#5C4630' }}>
+              Get weekly harvest updates, coastal arrivals, and fresh coop availability directly in your inbox.
+              Raised honest, sent clean.
+            </p>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!newsEmail.trim()) { setNewsError('Email address is required'); return; }
+                if (!/\S+@\S+\.\S+/.test(newsEmail)) { setNewsError('Invalid email address format'); return; }
+                if (subscribedEmails.includes(newsEmail.toLowerCase().trim())) {
+                  showToast("You're already subscribed!", 'info');
+                  setNewsError('');
+                  setNewsEmail('');
+                  return;
+                }
+                setSubscribedEmails([...subscribedEmails, newsEmail.toLowerCase().trim()]);
+                showToast('Subscribed to harvest list!', 'success');
+                setNewsEmail('');
+                setNewsError('');
+              }}
+              className="space-y-3"
+            >
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <input
+                  type="email"
+                  placeholder="Your email address"
+                  value={newsEmail}
+                  onChange={(e) => { setNewsEmail(e.target.value); if (newsError) setNewsError(''); }}
+                  className={`w-full text-sm border outline-none rounded-lg px-4 py-3 font-sans transition-all ${
+                    newsError
+                      ? 'border-[#B5484D] ring-1 ring-[#B5484D]'
+                      : 'border-[#C5AD8C] focus:border-[#5C4630] focus:ring-1 focus:ring-[#5C4630]'
+                  }`}
+                  style={{ background: '#FDFAF5', color: '#3A2B1D' }}
+                />
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto font-handwritten font-bold text-base px-7 py-3 rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer shrink-0"
+                  style={{ background: '#5C4630', color: '#F2E8D5', border: '2px solid #3A2B1D' }}
+                >
+                  Subscribe
+                </button>
+              </div>
+              {newsError && (
+                <span className="text-[10px] font-bold text-[#B5484D] flex items-center gap-1 justify-center font-sans">
+                  <AlertTriangle className="w-3 h-3 shrink-0" /> {newsError}
+                </span>
+              )}
+            </form>
+          </div>
         </div>
       </section>
 
