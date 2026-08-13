@@ -10,6 +10,8 @@ import {
 import { ArrowRight, Star, AlertTriangle } from 'lucide-react';
 import { NotificationContext } from '../context/NotificationContext';
 
+import RipomaLogo from '../components/RipomaLogo';
+
 const Home = () => {
   const { showToast } = useContext(NotificationContext);
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -49,6 +51,23 @@ const Home = () => {
       }
     }
   };
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#F6EFE3] flex flex-col items-center justify-center gap-4">
+        <motion.div
+          initial={{ scale: 0.7, opacity: 0 }}
+          animate={{ scale: [0.7, 1.1, 1], opacity: 1 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+        >
+          <RipomaLogo variant="icon" color="color" height={72} className="animate-pulse" />
+        </motion.div>
+        <span className="text-[10px] uppercase tracking-widest text-[#2F4B3C] font-bold">
+          RIPOMA Farm — Freshness Gate
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-[#F6EFE3] overflow-hidden">

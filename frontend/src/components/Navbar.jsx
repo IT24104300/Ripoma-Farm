@@ -1,16 +1,29 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 import { Menu, X, ShoppingBag, User, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
-import { HenIcon } from './FarmIcons';
+import RipomaLogo from './RipomaLogo';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const { cartItems, setIsCartOpen } = useContext(CartContext);
   const [isOpen, setIsOpen] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 120) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -21,19 +34,28 @@ const Navbar = () => {
   const totalCartItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <nav className="bg-[#2F4B3C] text-white sticky top-0 z-40 border-b border-white/5 backdrop-blur-md bg-opacity-95 shadow-sm">
+    <nav className="bg-[#2F4B3C] text-white sticky top-0 z-40 border-b border-white/5 backdrop-blur-md bg-opacity-95 shadow-sm transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'h-14' : 'h-20'}`}>
           
           {/* Logo and Brand */}
           <div className="flex-shrink-0 flex items-center">
-            <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="w-10 h-10 rounded-full bg-[#F6EFE3]/10 flex items-center justify-center text-[#2F4B3C] transition-colors group-hover:bg-[#F6EFE3]/20">
-                <HenIcon className="w-6 h-6 stroke-[1.25]" />
+            <Link to="/" className="flex items-center group transition-transform duration-300">
+              <div className="hidden sm:block">
+                <RipomaLogo
+                  variant={isScrolled ? "compact" : "full"}
+                  color="white"
+                  height={isScrolled ? 30 : 40}
+                  className="transition-all duration-300"
+                />
               </div>
-              <div className="flex flex-col text-left">
-                <span className="text-xl font-serif font-semibold tracking-wide text-[#F6EFE3]">Ripoma Farm</span>
-                <span className="text-[9px] uppercase tracking-widest text-[#2F4B3C] font-semibold leading-none">Coop & Coast</span>
+              <div className="sm:hidden">
+                <RipomaLogo
+                  variant={isScrolled ? "icon" : "compact"}
+                  color="white"
+                  height={isScrolled ? 24 : 28}
+                  className="transition-all duration-300"
+                />
               </div>
             </Link>
           </div>

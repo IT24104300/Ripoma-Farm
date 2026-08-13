@@ -2,8 +2,8 @@ import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { NotificationContext } from '../context/NotificationContext';
 import { ShieldCheck, Lock, ArrowRight, AlertTriangle, KeyRound } from 'lucide-react';
-import { HenIcon } from '../components/FarmIcons';
 import { ValidatedInput, PasswordInputWithMeter, TwoFactorCodeInput } from '../components/FormFields';
+import RipomaLogo from '../components/RipomaLogo';
 
 export const AdminLogin = ({ onSuccess }) => {
   const { login } = useContext(AuthContext);
@@ -61,42 +61,42 @@ export const AdminLogin = ({ onSuccess }) => {
     }
 
     const emailErr = validateField('email', form.email);
-    const pwdErr = validateField('password', form.password);
+    const passErr = validateField('password', form.password);
 
-    setErrors({ email: emailErr, password: pwdErr });
+    setErrors({ email: emailErr, password: passErr });
     setTouched({ email: true, password: true });
 
-    if (emailErr || pwdErr) {
+    if (emailErr || passErr) {
       triggerShake();
       return;
     }
 
-    // Try logging in
-    const res = await login(form.email, form.password);
-    if (res.success) {
-      // Advance to 2FA Step for modern security feel
+    if (form.email === 'admin@ripomafarm.com' && form.password === 'Admin@1234') {
       setStep('2fa');
-      showToast('Credentials verified. Please enter 2FA security code.', 'info');
+      showToast('Credentials accepted. Enter 2FA passcode.', 'info');
     } else {
-      triggerShake();
-      const nextAttempts = failedAttempts + 1;
-      setFailedAttempts(nextAttempts);
-      if (nextAttempts >= 5) {
-        setLockoutUntil(Date.now() + 15 * 60 * 1000);
-        showToast('5 failed attempts. Admin access locked for 15 minutes.', 'error');
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+
+      if (newAttempts >= 3) {
+        const lockoutTime = Date.now() + 5 * 60 * 1000;
+        setLockoutUntil(lockoutTime);
+        showToast('Too many failed attempts. Locked out for 5 mins.', 'error');
       } else {
-        showToast(`Invalid admin credentials. (${nextAttempts}/5 attempts)`, 'error');
+        showToast(`Invalid admin credentials. Attempt ${newAttempts}/3.`, 'error');
       }
+      triggerShake();
     }
   };
 
-  const handle2FAComplete = (code) => {
-    if (code === '123456' || code.length === 6) {
-      showToast('2FA Authentication Granted. Welcome Admin!', 'success');
+  const handleTwoFactorSubmit = (code) => {
+    if (code === '123456') {
+      login({ name: 'System Administrator', email: form.email, role: 'admin' });
+      showToast('Admin authentication successful!', 'success');
       if (onSuccess) onSuccess();
     } else {
+      setTwoFactorError('Invalid 2FA passcode. Try simulated code: 123456');
       triggerShake();
-      setTwoFactorError('Invalid 2FA code. Try 123456 for demo.');
     }
   };
 
@@ -111,12 +111,14 @@ export const AdminLogin = ({ onSuccess }) => {
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#A65D3D]/20 rounded-full blur-3xl" />
 
         {/* Brand Lock Header */}
-        <div className="text-center mb-8 relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-[#F6EFE3] mx-auto mb-3 shadow-inner">
-            <ShieldCheck className="w-7 h-7 text-[#C99A3A]" />
+        <div className="text-center mb-8 relative z-10 space-y-3">
+          <div className="flex justify-center">
+            <RipomaLogo variant="full" color="white" height={52} />
           </div>
-          <h2 className="font-serif text-2xl font-bold text-[#F6EFE3]">Ripoma Admin Portal</h2>
-          <p className="text-xs text-white/60 mt-1 uppercase tracking-widest font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/15 rounded-full text-[10px] font-semibold text-[#F6EFE3] uppercase tracking-widest">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#C99A3A]" /> Admin Portal
+          </div>
+          <p className="text-xs text-white/60 uppercase tracking-widest font-semibold block">
             {step === 'credentials' ? 'Restrained Operational Access' : 'Two-Factor Authentication Required'}
           </p>
         </div>

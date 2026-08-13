@@ -6,6 +6,7 @@ import {
   Trash2, X, Printer, Loader, AlertTriangle, ChevronRight, Filter, PlusCircle, CheckCircle2
 } from 'lucide-react';
 import { QuantityStepper } from '../components/FormFields';
+import RipomaLogo from '../components/RipomaLogo';
 
 // Satisfying row flash on completion (Packed / Delivered)
 const useFulfilmentFlash = () => {
@@ -757,8 +758,8 @@ const AdminOrders = () => {
               
               <div className="flex justify-between items-start border-b border-gray-150 pb-4">
                 <div>
-                  <h1 className="font-serif text-lg font-bold text-[#2F4B3C] leading-tight">Ripoma Farm Sourcing Slip</h1>
-                  <span className="text-[8px] uppercase tracking-widest text-gray-400 block pt-0.5">Fulfillment document</span>
+                  <RipomaLogo variant="full" color="mono" height={36} />
+                  <span className="text-[8px] uppercase tracking-widest text-gray-500 block pt-1 font-semibold">Official Packing Slip / Fulfillment Document</span>
                 </div>
                 <div className="text-right">
                   <div className="font-mono font-bold text-gray-900">{activeSlipOrder.invoiceNumber}</div>

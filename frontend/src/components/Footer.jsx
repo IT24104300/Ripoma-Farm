@@ -15,7 +15,7 @@ const FacebookIcon = ({ className = "w-4 h-4" }) => (
     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
   </svg>
 );
-import { HenIcon } from './FarmIcons';
+import RipomaLogo from './RipomaLogo';
 
 const Footer = () => {
   const scrollToTop = () => {
@@ -31,11 +31,8 @@ const Footer = () => {
           
           {/* Brand Column */}
           <div className="md:col-span-4 space-y-6">
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-[#2F4B3C]">
-                <HenIcon className="w-5 h-5 stroke-[1.25]" />
-              </div>
-              <span className="text-lg font-serif font-semibold tracking-wide text-white">Ripoma Farm</span>
+            <Link to="/" className="inline-block">
+              <RipomaLogo variant="full" color="white" height={40} />
             </Link>
             <p className="text-xs text-[#F6EFE3]/70 font-light leading-relaxed max-w-sm">
               Rooted in real soil, coastal tides, and honest hands. Delivering premium, clean Dry Fish, fresh pasture Eggs, and free-range Chicken straight from our gate to your doorstep.

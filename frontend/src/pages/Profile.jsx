@@ -7,6 +7,7 @@ import { User, MapPin, ClipboardList, Bell, Calendar, Receipt, LogOut, Flame, Aw
 import { HenIcon } from '../components/FarmIcons';
 import { ValidatedInput, PasswordInputWithMeter } from '../components/FormFields';
 import { FarmStoryModal } from '../components/FarmStoryModal';
+import RipomaLogo from '../components/RipomaLogo';
 
 const Profile = () => {
   const { user, login, register, logout, updateProfile, loginWithGoogle } = useContext(AuthContext);
@@ -310,12 +311,12 @@ const Profile = () => {
         
         {/* Full-Screen Warm Login Transition Overlay */}
         {isTransitioning && (
-          <div className="fixed inset-0 z-50 bg-[#F6EFE3] flex flex-col items-center justify-center animate-fade-in-up">
-            <div className="w-16 h-16 rounded-full bg-[#2F4B3C]/10 text-[#2F4B3C] flex items-center justify-center animate-bounce mb-4">
-              <HenIcon className="w-9 h-9" />
+          <div className="fixed inset-0 z-50 bg-[#F6EFE3] flex flex-col items-center justify-center animate-fade-in-up gap-4">
+            <div className="animate-bounce">
+              <RipomaLogo variant="icon" color="color" height={64} />
             </div>
             <h3 className="font-serif text-2xl font-bold text-[#2F4B3C]">Welcome to Ripoma Farm</h3>
-            <p className="text-xs text-[#8A6A4B] mt-1 uppercase tracking-widest font-semibold">Opening direct farm door...</p>
+            <p className="text-xs text-[#8A6A4B] uppercase tracking-widest font-semibold">Opening direct farm door...</p>
           </div>
         )}
 
@@ -336,14 +337,8 @@ const Profile = () => {
 
             {/* Top Brand Header */}
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[#F6EFE3]">
-                  <HenIcon className="w-6 h-6 stroke-[1.25]" />
-                </div>
-                <div>
-                  <span className="text-xl font-serif font-bold text-[#F6EFE3] block">Ripoma Farm</span>
-                  <span className="text-[9px] uppercase tracking-widest text-[#F6EFE3]/70 font-semibold block">Fresh Coop & Coastal Sourcing</span>
-                </div>
+              <div className="mb-6">
+                <RipomaLogo variant="full" color="white" height={42} />
               </div>
 
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/15 rounded-full text-[10px] font-bold uppercase tracking-wider text-[#F6EFE3]">

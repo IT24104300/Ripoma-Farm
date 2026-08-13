@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { NotificationContext } from '../context/NotificationContext';
 import { ShieldCheck, Truck, CreditCard, ChevronRight, CheckCircle, Lock, AlertTriangle, MapPin, Clock, Calendar } from 'lucide-react';
 import { ValidatedInput, PhoneInput, CreditCardInput } from '../components/FormFields';
+import RipomaLogo from '../components/RipomaLogo';
 
 const Checkout = () => {
   const { cartItems, subtotal, tax, shippingFee, total, placeOrder } = useContext(CartContext);
@@ -260,9 +261,12 @@ const Checkout = () => {
 
   if (successOrder) {
     return (
-      <div className="max-w-xl mx-auto py-20 px-6 text-center space-y-8 animate-fade-in-up bg-white rounded-xl border border-gray-100 shadow-sm mt-12 font-sans">
-        <CheckCircle className="w-14 h-14 text-emerald-800 mx-auto" />
-        <h2 className="text-3xl font-serif text-[#2F4B3C] font-semibold">Order Confirmed</h2>
+      <div className="max-w-xl mx-auto py-16 px-6 text-center space-y-6 animate-fade-in-up bg-white rounded-xl border border-gray-100 shadow-sm mt-12 font-sans">
+        <div className="flex justify-center mb-2">
+          <RipomaLogo variant="compact" color="color" height={36} />
+        </div>
+        <CheckCircle className="w-12 h-12 text-emerald-700 mx-auto" />
+        <h2 className="text-2xl font-serif text-[#2F4B3C] font-semibold">Order Confirmed</h2>
         <p className="text-xs text-gray-500 leading-relaxed max-w-sm mx-auto font-light">
           Your order has been queued for harvesting and packaging. We've sent a detailed invoice receipt to <span className="font-bold text-gray-800">{formData.email}</span>.
         </p>

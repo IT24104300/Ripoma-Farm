@@ -23,6 +23,7 @@ import {
 import { HenIcon } from '../components/FarmIcons';
 
 import AdminLogin from './AdminLogin';
+import RipomaLogo from '../components/RipomaLogo';
 import { Flame } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -165,14 +166,8 @@ const AdminDashboard = () => {
         
         <div className="p-6 space-y-8">
           {/* Brand header */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-[#2F4B3C]">
-              <HenIcon className="w-5 h-5 stroke-[1.25]" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-serif font-bold text-white tracking-wide">Ripoma Admin</span>
-              <span className="text-[8px] uppercase tracking-widest text-[#2F4B3C] font-semibold leading-none">Operations console</span>
-            </div>
+          <Link to="/" className="inline-block group py-1">
+            <RipomaLogo variant="compact" color="white" height={32} />
           </Link>
 
           <nav className="flex flex-col gap-1.5 text-[10px] uppercase tracking-wider font-semibold">
