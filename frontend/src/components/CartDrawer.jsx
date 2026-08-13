@@ -68,10 +68,21 @@ const CartDrawer = () => {
               </button>
             </div>
 
-            {/* Freshness banner */}
-            <div className="bg-[#2F4B3C]/20 border-b border-[#2F4B3C]/30 px-6 py-2.5 flex items-center gap-2 text-xs text-[#2F4B3C] shrink-0 font-medium select-none">
-              <ShieldCheck className="w-4 h-4 shrink-0 text-[#2F4B3C]" />
-              <span>Packed fresh the morning of dispatch.</span>
+            {/* Freshness banner & Free Shipping Progress Bar */}
+            <div className="bg-[#2F4B3C]/10 border-b border-[#2F4B3C]/15 px-6 py-3 flex flex-col gap-2 shrink-0 select-none">
+              <div className="flex items-center justify-between text-xs font-bold text-[#2F4B3C]">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 shrink-0 text-[#2F4B3C]" />
+                  <span>{subtotal >= 50 ? '🎉 Free Delivery Unlocked!' : `Add $${(50 - subtotal).toFixed(2)} more for Free Delivery`}</span>
+                </div>
+                <span className="text-[10px] text-[#A65D3D]">{Math.min(100, Math.round((subtotal / 50) * 100))}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-white rounded-full overflow-hidden border border-gray-200">
+                <div 
+                  className="h-full bg-gradient-to-r from-[#2F4B3C] to-[#A65D3D] transition-all duration-300 rounded-full"
+                  style={{ width: `${Math.min(100, Math.round((subtotal / 50) * 100))}%` }}
+                />
+              </div>
             </div>
 
             {/* Cart Items List */}

@@ -59,8 +59,16 @@ const Navbar = () => {
           </div>
 
           {/* Icons & Account block */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-5">
             
+            {/* Harvest Loyalty Points Indicator */}
+            {user && (
+              <div className="flex items-center gap-1.5 bg-[#F6EFE3]/10 px-3 py-1.5 rounded-full border border-white/10 text-xs text-[#F6EFE3] animate-pop-scale">
+                <HenIcon className="w-4 h-4 fill-current text-[#C99A3A]" />
+                <span className="font-bold text-[11px] tracking-wide">185 Pts</span>
+              </div>
+            )}
+
             {/* Open Drawer Cart Trigger */}
             <button 
               onClick={() => setIsCartOpen(true)}

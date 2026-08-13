@@ -3,13 +3,23 @@ import { useNavigate, Link } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
 import { AuthContext } from '../context/AuthContext';
 import { NotificationContext } from '../context/NotificationContext';
-import { ShieldCheck, Truck, CreditCard, ChevronRight, CheckCircle, Lock, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, ChevronRight, CheckCircle, Lock, AlertTriangle, MapPin, Clock, Calendar } from 'lucide-react';
+import { ValidatedInput, PhoneInput, CreditCardInput } from '../components/FormFields';
 
 const Checkout = () => {
   const { cartItems, subtotal, tax, shippingFee, total, placeOrder } = useContext(CartContext);
   const { user } = useContext(AuthContext);
   const { showToast } = useContext(NotificationContext);
   const navigate = useNavigate();
+
+  // Delivery Slots state
+  const [selectedSlot, setSelectedSlot] = useState('slot-1');
+
+  const deliverySlots = [
+    { id: 'slot-1', title: 'Tomorrow Morning', time: '8:00 AM – 11:00 AM', available: true },
+    { id: 'slot-2', title: 'Tomorrow Afternoon', time: '1:00 PM – 4:00 PM', available: true },
+    { id: 'slot-3', title: 'Evening Dispatch', time: '5:00 PM – 8:00 PM', available: false }
+  ];
 
   // Address inputs state
   const [formData, setFormData] = useState({
@@ -312,112 +322,137 @@ const Checkout = () => {
         <form onSubmit={handleSubmit} className="lg:col-span-8 space-y-6">
           
           {/* Sourcing/Delivery address info */}
-          <div className="bg-white border border-gray-100 rounded-xl p-6 sm:p-8 shadow-sm space-y-6">
-            <h3 className="text-base font-serif text-[#2F4B3C] font-semibold flex items-center gap-2 border-b border-gray-50 pb-3">
-              <Truck className="w-4 h-4 text-[#A65D3D]" /> Delivery Information
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block">Full Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleFormChange}
-                  onBlur={handleFormBlur}
-                  className={getAddressInputClass('name')}
-                />
-                {addressTouched.name && addressErrors.name && (
-                  <span className="text-red-500 font-bold text-[9px] tracking-wide flex items-center gap-1 mt-0.5 animate-pulse">
-                    <AlertTriangle className="w-3 h-3 shrink-0" /> {addressErrors.name}
-                  </span>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block">Phone Number</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleFormChange}
-                  onBlur={handleFormBlur}
-                  className={getAddressInputClass('phone')}
-                />
-                {addressTouched.phone && addressErrors.phone && (
-                  <span className="text-red-500 font-bold text-[9px] tracking-wide flex items-center gap-1 mt-0.5 animate-pulse">
-                    <AlertTriangle className="w-3 h-3 shrink-0" /> {addressErrors.phone}
-                  </span>
-                )}
-              </div>
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+              <h3 className="text-lg font-serif text-[#2F4B3C] font-semibold flex items-center gap-2">
+                <Truck className="w-5 h-5 text-[#A65D3D]" /> Delivery & Sourcing Address
+              </h3>
+              {formData.city && serviceableCities.includes(formData.city) && (
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold animate-pop-scale">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600" /> Serviceable Zone Pin Confirmed
+                </div>
+              )}
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block">Street Address</label>
-                <input
-                  type="text"
-                  name="street"
-                  placeholder="Apartment, unit, floor, door details..."
-                  value={formData.street}
-                  onChange={handleFormChange}
-                  onBlur={handleFormBlur}
-                  className={getAddressInputClass('street')}
-                />
-                {addressTouched.street && addressErrors.street && (
-                  <span className="text-red-500 font-bold text-[9px] tracking-wide flex items-center gap-1 mt-0.5 animate-pulse">
-                    <AlertTriangle className="w-3 h-3 shrink-0" /> {addressErrors.street}
-                  </span>
-                )}
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <ValidatedInput
+                id="name"
+                name="name"
+                label="Full Name"
+                value={formData.name}
+                onChange={handleFormChange}
+                onBlur={handleFormBlur}
+                error={addressErrors.name}
+                touched={addressTouched.name}
+                isValid={!addressErrors.name}
+                required
+              />
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="space-y-1 col-span-2">
-                  <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block">City</label>
-                  <input
-                    type="text"
+              <PhoneInput
+                value={formData.phone}
+                onChange={(e) => handleFormChange({ target: { name: 'phone', value: e.target.value } })}
+                onBlur={handleFormBlur}
+                error={addressErrors.phone}
+                touched={addressTouched.phone}
+                isValid={!addressErrors.phone}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <ValidatedInput
+                id="street"
+                name="street"
+                label="Street Address"
+                value={formData.street}
+                onChange={handleFormChange}
+                onBlur={handleFormBlur}
+                error={addressErrors.street}
+                touched={addressTouched.street}
+                isValid={!addressErrors.street}
+                placeholder="Door, apartment, street details..."
+                required
+              />
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="col-span-2">
+                  <ValidatedInput
+                    id="city"
                     name="city"
+                    label="City"
                     value={formData.city}
                     onChange={handleFormChange}
                     onBlur={handleFormBlur}
-                    className={getAddressInputClass('city')}
-                  />
-                  {addressTouched.city && addressErrors.city && (
-                    <span className="text-red-550 font-bold text-[9px] tracking-wide flex items-start gap-1 mt-0.5 animate-pulse">
-                      <AlertTriangle className="w-3 h-3 shrink-0 mt-0.5" /> {addressErrors.city}
-                    </span>
-                  )}
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block">State</label>
-                  <input
-                    type="text"
-                    name="state"
+                    error={addressErrors.city}
+                    touched={addressTouched.city}
+                    isValid={!addressErrors.city}
+                    placeholder="Organic City"
                     required
-                    value={formData.state}
-                    onChange={handleFormChange}
-                    className="w-full border border-gray-200 outline-none rounded py-2.5 px-3 text-xs leading-relaxed focus:border-[#2F4B3C]"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block">Zip Code</label>
-                  <input
-                    type="text"
-                    name="zipCode"
-                    value={formData.zipCode}
-                    onChange={handleFormChange}
-                    onBlur={handleFormBlur}
-                    className={getAddressInputClass('zipCode')}
-                  />
-                  {addressTouched.zipCode && addressErrors.zipCode && (
-                    <span className="text-red-500 font-bold text-[9px] tracking-wide flex items-center gap-1 mt-0.5 animate-pulse">
-                      <AlertTriangle className="w-3 h-3 shrink-0" /> {addressErrors.zipCode}
-                    </span>
-                  )}
-                </div>
+
+                <ValidatedInput
+                  id="state"
+                  name="state"
+                  label="State"
+                  value={formData.state}
+                  onChange={handleFormChange}
+                  onBlur={handleFormBlur}
+                  error={addressErrors.state}
+                  touched={addressTouched.state}
+                  isValid={!addressErrors.state}
+                  required
+                />
+
+                <ValidatedInput
+                  id="zipCode"
+                  name="zipCode"
+                  label="Zip Code"
+                  value={formData.zipCode}
+                  onChange={handleFormChange}
+                  onBlur={handleFormBlur}
+                  error={addressErrors.zipCode}
+                  touched={addressTouched.zipCode}
+                  isValid={!addressErrors.zipCode}
+                  required
+                />
               </div>
             </div>
+
+            {/* Delivery Slot Selector */}
+            <div className="pt-4 border-t border-gray-100 space-y-3">
+              <label className="text-xs font-bold text-[#2F4B3C] uppercase tracking-wider block flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-[#A65D3D]" /> Preferred Delivery Slot
+              </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {deliverySlots.map((slot) => {
+                  const isSelected = selectedSlot === slot.id;
+                  return (
+                    <button
+                      key={slot.id}
+                      type="button"
+                      disabled={!slot.available}
+                      onClick={() => setSelectedSlot(slot.id)}
+                      className={`p-3.5 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
+                        !slot.available
+                          ? 'opacity-40 bg-gray-100 border-gray-200 cursor-not-allowed line-through'
+                          : isSelected
+                          ? 'border-[#2F4B3C] bg-[#2F4B3C]/10 ring-2 ring-[#2F4B3C]/20 shadow-sm transform -translate-y-1'
+                          : 'border-gray-200 bg-white hover:-translate-y-1 hover:shadow-md hover:border-[#2F4B3C]/40'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#2F4B3C]">{slot.title}</span>
+                        {isSelected && <CheckCircle className="w-4 h-4 text-[#2F4B3C]" />}
+                      </div>
+                      <span className="text-[10px] text-gray-500 font-medium block mt-1">{slot.time}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
           </div>
 
           {/* Payment gateway */}

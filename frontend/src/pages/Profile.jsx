@@ -3,8 +3,10 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { NotificationContext } from '../context/NotificationContext';
-import { User, MapPin, ClipboardList, Bell, Calendar, Receipt, LogOut } from 'lucide-react';
+import { User, MapPin, ClipboardList, Bell, Calendar, Receipt, LogOut, Flame, Award, Gift, Sparkles, AlertTriangle, CheckCircle2, ShieldCheck, Heart } from 'lucide-react';
 import { HenIcon } from '../components/FarmIcons';
+import { ValidatedInput, PasswordInputWithMeter } from '../components/FormFields';
+import { FarmStoryModal } from '../components/FarmStoryModal';
 
 const Profile = () => {
   const { user, login, register, logout, updateProfile, loginWithGoogle } = useContext(AuthContext);
@@ -12,8 +14,14 @@ const Profile = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Redirect check (e.g. checkout redirect)
+  // Redirect check
   const redirectTarget = searchParams.get('redirect') || '';
+
+  // Warm Login Screen Transition Overlay
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Unlockable Farm Story Modal
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
 
   // Signed out forms
   const [isLoginTab, setIsLoginTab] = useState(true);
@@ -22,22 +30,10 @@ const Profile = () => {
   // Real-time Validation Spec
   const [authErrors, setAuthErrors] = useState({});
   const [authTouched, setAuthTouched] = useState({});
-  const [pwdStrength, setPwdStrength] = useState('');
   
   // Login Lockout Cooldown variables
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockoutTime, setLockoutTime] = useState(null);
-
-  const calculatePwdStrength = (pass) => {
-    if (!pass) return '';
-    if (pass.length < 8) return 'Weak';
-    const hasNum = /[0-9]/.test(pass);
-    const hasLetter = /[A-Za-z]/.test(pass);
-    const hasSpecial = /[^A-Za-z0-9]/.test(pass);
-    if (hasNum && hasLetter && hasSpecial) return 'Strong';
-    if (hasNum && hasLetter) return 'Good';
-    return 'Weak';
-  };
 
   const validateAuthField = (name, value, isLogin = isLoginTab) => {
     let err = '';
@@ -47,8 +43,8 @@ const Profile = () => {
         else if (!isLogin && (value.length < 2 || value.length > 60)) err = 'Name must be between 2 and 60 characters';
         break;
       case 'email':
-        if (!value.trim()) err = 'Email is required';
-        else if (!/\S+@\S+\.\S+/.test(value)) err = 'Invalid email address format';
+        if (!value.trim()) err = 'Email address is required';
+        else if (!/\S+@\S+\.\S+/.test(value)) err = 'Please enter a valid email address';
         else if (!isLogin && value.toLowerCase().trim() === 'customer@ripomafarm.com') {
           err = 'Looks like you already have an account — log in instead?';
         }
@@ -109,17 +105,21 @@ const Profile = () => {
   }, [user, isLoginTab]);
 
   const handleGoogleCredentialResponse = async (response) => {
+    setIsTransitioning(true);
     const res = await loginWithGoogle(response.credential);
     if (res.success) {
-      showToast('Logged in with Google successfully!', 'success');
-      if (redirectTarget) navigate(`/${redirectTarget}`);
+      setTimeout(() => {
+        setIsTransitioning(false);
+        showToast('Logged in with Google successfully!', 'success');
+        if (redirectTarget) navigate(`/${redirectTarget}`);
+      }, 700);
     } else {
+      setIsTransitioning(false);
       showToast(res.message, 'error');
     }
   };
 
   const handleSimulateGoogleLogin = async () => {
-    // base64 bypass simulation token for testing
     const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
     const payload = btoa(JSON.stringify({
       email: "admin@ripomafarm.com",
@@ -128,16 +128,20 @@ const Profile = () => {
     }));
     const mockToken = `${header}.${payload}.signature_placeholder`;
 
-    showToast('Simulating Google Sign-In redirect...', 'info');
+    setIsTransitioning(true);
     setTimeout(async () => {
       const res = await loginWithGoogle(mockToken);
       if (res.success) {
-        showToast('Logged in with Google Account (Admin Role)!', 'success');
-        if (redirectTarget) navigate(`/${redirectTarget}`);
+        setTimeout(() => {
+          setIsTransitioning(false);
+          showToast('Logged in with Google Account (Admin Role)!', 'success');
+          if (redirectTarget) navigate(`/${redirectTarget}`);
+        }, 500);
       } else {
+        setIsTransitioning(false);
         showToast(res.message, 'error');
       }
-    }, 800);
+    }, 600);
   };
 
   useEffect(() => {
@@ -193,14 +197,7 @@ const Profile = () => {
   };
 
   const handleInputChange = (name, value) => {
-    setAuthForm(prev => {
-      const updated = { ...prev, [name]: value };
-      if (name === 'password') {
-        const strength = calculatePwdStrength(value);
-        setPwdStrength(strength);
-      }
-      return updated;
-    });
+    setAuthForm(prev => ({ ...prev, [name]: value }));
 
     if (authTouched[name]) {
       const err = validateAuthField(name, value);
@@ -214,17 +211,26 @@ const Profile = () => {
     setAuthErrors(prev => ({ ...prev, [name]: err }));
   };
 
+  const isFormValid = () => {
+    const emailErr = validateAuthField('email', authForm.email);
+    const pwdErr = validateAuthField('password', authForm.password);
+    if (emailErr || pwdErr) return false;
+    if (!isLoginTab) {
+      const nameErr = validateAuthField('name', authForm.name);
+      if (nameErr) return false;
+    }
+    return true;
+  };
+
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
 
-    // Check Lockout Status
     if (isLoginTab && lockoutTime && Date.now() < lockoutTime) {
       const remainingMin = Math.ceil((lockoutTime - Date.now()) / 60000);
-      showToast(`Too many failed login attempts. Try again in ${remainingMin} minutes.`, 'error');
+      showToast(`Too many failed attempts. Try again in ${remainingMin} minutes.`, 'error');
       return;
     }
 
-    // Run validations
     const allErrors = {
       email: validateAuthField('email', authForm.email),
       password: validateAuthField('password', authForm.password)
@@ -237,10 +243,11 @@ const Profile = () => {
     setAuthTouched({ name: true, email: true, password: true });
 
     if (Object.values(allErrors).some(err => err !== '')) {
-      showToast('Please correct validation warnings before submitting.', 'error');
+      showToast('Please fix the highlighted form warnings.', 'error');
       return;
     }
 
+    setIsTransitioning(true);
     let res;
     if (isLoginTab) {
       res = await login(authForm.email, authForm.password);
@@ -249,18 +256,22 @@ const Profile = () => {
     }
 
     if (res.success) {
-      showToast(isLoginTab ? 'Logged in successfully!' : 'Account registered successfully!', 'success');
-      setFailedAttempts(0);
-      setLockoutTime(null);
-      if (redirectTarget) navigate(`/${redirectTarget}`);
+      setTimeout(() => {
+        setIsTransitioning(false);
+        showToast(isLoginTab ? 'Welcome back to Ripoma Farm!' : 'Account created! Welcome to Ripoma Farm.', 'success');
+        setFailedAttempts(0);
+        setLockoutTime(null);
+        if (redirectTarget) navigate(`/${redirectTarget}`);
+      }, 700);
     } else {
+      setIsTransitioning(false);
       if (isLoginTab) {
         const nextAttempts = failedAttempts + 1;
         setFailedAttempts(nextAttempts);
         if (nextAttempts >= 5) {
           const timeout = Date.now() + 15 * 60 * 1000;
           setLockoutTime(timeout);
-          showToast('Too many failed attempts. Login locked for 15 minutes.', 'error');
+          showToast('Too many failed attempts. Account locked for 15 minutes.', 'error');
         } else {
           showToast(`Invalid login credentials. Attempt ${nextAttempts} of 5.`, 'error');
         }
@@ -290,190 +301,247 @@ const Profile = () => {
     }
   };
 
-  const getAuthInputClass = (fieldName) => {
-    const baseClass = "w-full border outline-none rounded py-2 px-3 text-gray-800 input-field text-xs ";
-    if (!authTouched[fieldName]) return baseClass + "border-gray-200 focus:border-[#2F4B3C]";
-    return authErrors[fieldName] ? baseClass + "input-invalid" : baseClass + "input-valid";
-  };
-
   /* ========================================================
-     GUEST VIEW: SIGN IN / REGISTER
+     GUEST VIEW: SPLIT-SCREEN EDITORIAL AUTH EXPERIENCE
      ======================================================== */
   if (!user) {
     return (
-      <div className="max-w-md mx-auto py-20 px-4 space-y-6 font-sans text-left bg-[#F6EFE3]">
-        <div className="bg-white border border-[#8A6A4B]/10 rounded-xl shadow-sm overflow-hidden">
-          
-          {/* Tab Selector */}
-          <div className="grid grid-cols-2 text-center border-b border-gray-100 select-none font-sans">
-            <button
-              onClick={() => { setIsLoginTab(true); setAuthErrors({}); setAuthTouched({}); }}
-              className={`py-4 font-bold text-xs uppercase tracking-wider cursor-pointer transition-colors ${
-                isLoginTab ? 'text-[#2F4B3C] border-b border-[#2F4B3C] bg-white font-black' : 'text-gray-400 bg-gray-50'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => { setIsLoginTab(false); setAuthErrors({}); setAuthTouched({}); }}
-              className={`py-4 font-bold text-xs uppercase tracking-wider cursor-pointer transition-colors ${
-                !isLoginTab ? 'text-[#2F4B3C] border-b border-[#2F4B3C] bg-white font-black' : 'text-gray-400 bg-gray-50'
-              }`}
-            >
-              Register
-            </button>
+      <div className="min-h-[calc(100vh-5rem)] bg-[#F6EFE3] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8">
+        
+        {/* Full-Screen Warm Login Transition Overlay */}
+        {isTransitioning && (
+          <div className="fixed inset-0 z-50 bg-[#F6EFE3] flex flex-col items-center justify-center animate-fade-in-up">
+            <div className="w-16 h-16 rounded-full bg-[#2F4B3C]/10 text-[#2F4B3C] flex items-center justify-center animate-bounce mb-4">
+              <HenIcon className="w-9 h-9" />
+            </div>
+            <h3 className="font-serif text-2xl font-bold text-[#2F4B3C]">Welcome to Ripoma Farm</h3>
+            <p className="text-xs text-[#8A6A4B] mt-1 uppercase tracking-widest font-semibold">Opening direct farm door...</p>
           </div>
+        )}
 
-          {/* Form container */}
-          <form onSubmit={handleAuthSubmit} className="p-6 sm:p-8 space-y-5">
-            <div className="flex justify-center mb-1">
-              <div className="w-10 h-10 rounded-full bg-[#2F4B3C]/5 flex items-center justify-center text-[#2F4B3C]">
-                <HenIcon className="w-5 h-5 stroke-[1.5]" />
+        <div className="max-w-5xl mx-auto w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-[#8A6A4B]/15 grid grid-cols-1 md:grid-cols-12 min-h-[600px]">
+          
+          {/* LEFT COLUMN: Editorial Panning Photo & Brand Story */}
+          <div className="md:col-span-6 relative overflow-hidden bg-[#2F4B3C] text-white flex flex-col justify-between p-8 sm:p-12">
+            
+            {/* Slowly Panning Background Image */}
+            <div className="absolute inset-0 z-0 overflow-hidden opacity-40">
+              <img
+                src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80"
+                alt="Southern Sri Lankan Farm Coast"
+                className="w-full h-full object-cover animate-pan-bg"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#2F4B3C] via-[#2F4B3C]/60 to-transparent" />
+            </div>
+
+            {/* Top Brand Header */}
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[#F6EFE3]">
+                  <HenIcon className="w-6 h-6 stroke-[1.25]" />
+                </div>
+                <div>
+                  <span className="text-xl font-serif font-bold text-[#F6EFE3] block">Ripoma Farm</span>
+                  <span className="text-[9px] uppercase tracking-widest text-[#F6EFE3]/70 font-semibold block">Fresh Coop & Coastal Sourcing</span>
+                </div>
+              </div>
+
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/15 rounded-full text-[10px] font-bold uppercase tracking-wider text-[#F6EFE3]">
+                <Sparkles className="w-3 h-3 text-[#C99A3A]" /> Direct Farm-to-Table Order System
+              </span>
+            </div>
+
+            {/* Bottom Quote & Trust Badges */}
+            <div className="relative z-10 mt-12 space-y-6">
+              <blockquote className="font-serif italic text-lg text-[#F6EFE3]/95 leading-relaxed">
+                "Our pasture eggs and organic coconuts are harvested daily at sunrise, packaged with care, and delivered fresh to your kitchen doorstep."
+              </blockquote>
+
+              <div className="pt-6 border-t border-white/10 flex items-center justify-between text-xs text-[#F6EFE3]/80">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#C99A3A]" />
+                  <span>100% Traceable Harvest</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Gift className="w-4 h-4 text-[#A65D3D]" />
+                  <span>Earn Harvest Points</span>
+                </div>
               </div>
             </div>
-            
-            <h3 className="text-xl font-serif text-[#2F4B3C] font-semibold text-center">
-              {isLoginTab ? 'Welcome Back' : 'Create Farm Account'}
-            </h3>
-            <p className="text-xs text-gray-400 text-center max-w-xs mx-auto leading-relaxed font-light">
-              {isLoginTab 
-                ? 'Sign in to access your direct address directory and track shipments.' 
-                : 'Join Ripoma Farm today to manage fresh coops deliveries.'}
-            </p>
 
-            {/* Lockout Notification Alert */}
+          </div>
+
+          {/* RIGHT COLUMN: Interactive Coconut Cream Form */}
+          <div className="md:col-span-6 bg-[#F6EFE3]/50 p-6 sm:p-10 flex flex-col justify-center">
+            
+            {/* Tab Switcher */}
+            <div className="flex bg-white/80 p-1.5 rounded-xl border border-gray-200/80 mb-6 shadow-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLoginTab(true);
+                  setAuthErrors({});
+                  setAuthTouched({});
+                }}
+                className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                  isLoginTab
+                    ? 'bg-[#2F4B3C] text-white shadow-sm'
+                    : 'text-gray-500 hover:text-[#2F4B3C]'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLoginTab(false);
+                  setAuthErrors({});
+                  setAuthTouched({});
+                }}
+                className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                  !isLoginTab
+                    ? 'bg-[#2F4B3C] text-white shadow-sm'
+                    : 'text-gray-500 hover:text-[#2F4B3C]'
+                }`}
+              >
+                Register
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <h3 className="font-serif text-2xl font-bold text-[#2F4B3C]">
+                {isLoginTab ? 'Welcome Back' : 'Join Our Farm Family'}
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">
+                {isLoginTab
+                  ? 'Sign in to access your direct address directory and track shipments.'
+                  : 'Register now to earn Harvest Points and unlock exclusive farm stories.'}
+              </p>
+            </div>
+
+            {/* Lockout Warning Banner */}
             {lockoutTime && Date.now() < lockoutTime && (
-              <div className="p-3 bg-red-50 border border-red-100 rounded text-[10px] font-bold text-red-700 flex items-center gap-2 select-none animate-pulse">
-                <AlertTriangle className="w-4 h-4 text-red-750" />
-                <span>Too many attempts. Locked out for {Math.ceil((lockoutTime - Date.now()) / 60000)} min.</span>
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-700 flex items-center gap-2 animate-pulse">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-red-600" />
+                <span>Account locked for failed attempts. Try again in {Math.ceil((lockoutTime - Date.now()) / 60000)} mins.</span>
               </div>
             )}
 
-            {!isLoginTab && (
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block">Full Name</label>
-                <input
+            {/* Form */}
+            <form onSubmit={handleAuthSubmit} noValidate className="space-y-1">
+              
+              {!isLoginTab && (
+                <ValidatedInput
+                  id="name"
+                  name="name"
                   type="text"
-                  placeholder="John Doe"
+                  label="Full Name"
                   value={authForm.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   onBlur={(e) => handleAuthBlur('name', e.target.value)}
-                  className={getAuthInputClass('name')}
+                  error={authErrors.name}
+                  touched={authTouched.name}
+                  isValid={!authErrors.name}
+                  placeholder="John Doe"
+                  required
                 />
-                {authTouched.name && authErrors.name && (
-                  <span className="text-red-500 font-bold text-[9px] tracking-wide flex items-center gap-1 mt-0.5">
-                    <AlertTriangle className="w-3 h-3 shrink-0" /> {authErrors.name}
-                  </span>
-                )}
-              </div>
-            )}
+              )}
 
-            <div className="space-y-1">
-              <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block">Email Address</label>
-              <input
+              <ValidatedInput
+                id="email"
+                name="email"
                 type="email"
-                placeholder="customer@ripomafarm.com"
+                label="Email Address"
                 value={authForm.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 onBlur={(e) => handleAuthBlur('email', e.target.value)}
-                className={getAuthInputClass('email')}
+                error={authErrors.email}
+                touched={authTouched.email}
+                isValid={!authErrors.email}
+                placeholder="customer@ripomafarm.com"
+                required
+                suggestionLink={
+                  !isLoginTab && authErrors.email?.includes('already have an account')
+                    ? {
+                        text: 'Click here to Sign In instead →',
+                        onClick: () => {
+                          setIsLoginTab(true);
+                          setAuthErrors({});
+                          setAuthTouched({});
+                        }
+                      }
+                    : null
+                }
               />
-              {authTouched.email && authErrors.email && (
-                <div className="flex flex-col gap-1.5 mt-0.5">
-                  <span className="text-red-500 font-bold text-[9px] tracking-wide flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3 shrink-0" /> {authErrors.email}
-                  </span>
-                  {!isLoginTab && authErrors.email.includes('already have an account') && (
-                    <button
-                      type="button"
-                      onClick={() => { setIsLoginTab(true); setAuthErrors({}); setAuthTouched({}); }}
-                      className="text-[#2F4B3C] hover:text-[#A65D3D] text-[9.5px] font-black uppercase tracking-wider text-left underline cursor-pointer"
-                    >
-                      Click here to Sign In instead &rarr;
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
 
-            <div className="space-y-1">
-              <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block">Password</label>
-              <input
-                type="password"
-                placeholder="••••••••"
+              <PasswordInputWithMeter
+                id="password"
+                name="password"
+                label="Password"
                 value={authForm.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 onBlur={(e) => handleAuthBlur('password', e.target.value)}
-                className={getAuthInputClass('password')}
+                error={authErrors.password}
+                touched={authTouched.password}
+                isValid={!authErrors.password}
+                required
+                showStrengthMeter={!isLoginTab}
               />
-              {authTouched.password && authErrors.password && (
-                <span className="text-red-500 font-bold text-[9px] tracking-wide flex items-center gap-1 mt-0.5">
-                  <AlertTriangle className="w-3 h-3 shrink-0" /> {authErrors.password}
-                </span>
-              )}
-              
-              {/* Password strength meter */}
-              {!isLoginTab && authForm.password && (
-                <div className="flex justify-between items-center text-[9px] pt-1 font-bold">
-                  <span className="text-gray-400">Password Strength:</span>
-                  <span className={`px-2 py-0.5 border rounded uppercase tracking-wider ${
-                    pwdStrength === 'Strong' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
-                    pwdStrength === 'Good' ? 'bg-[#3E6B6B]/10 text-[#3E6B6B] border-[#3E6B6B]/20' :
-                    'bg-amber-50 text-amber-700 border-amber-100'
-                  }`}>
-                    {pwdStrength}
-                  </span>
+
+              {isLoginTab && (
+                <div className="text-right mb-4">
+                  <button
+                    type="button"
+                    onClick={() => showToast('Reset instructions sent to your mailbox.', 'info')}
+                    className="text-xs font-medium text-gray-500 hover:text-[#2F4B3C] hover:underline cursor-pointer"
+                  >
+                    Forgot password?
+                  </button>
                 </div>
               )}
-            </div>
 
-            {/* Forgot password simulation link */}
-            {isLoginTab && (
-              <div className="text-right">
-                <button
-                  type="button"
-                  onClick={() => showToast('Simulating: Reset instruction sent to your mailbox.', 'success')}
-                  className="text-gray-400 hover:text-gray-600 hover:underline text-[9.5px] cursor-pointer"
-                >
-                  Forgot your password?
-                </button>
-              </div>
-            )}
+              <button
+                type="submit"
+                disabled={!isFormValid() || (lockoutTime && Date.now() < lockoutTime)}
+                className={`w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all duration-200 shadow-md cursor-pointer ${
+                  isFormValid() && (!lockoutTime || Date.now() >= lockoutTime)
+                    ? 'bg-[#2F4B3C] hover:bg-[#A65D3D] text-white hover:shadow-lg active:scale-[0.99]'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                }`}
+              >
+                {isLoginTab ? 'Sign In to Account' : 'Create Farm Account'}
+              </button>
 
-            <button
-              type="submit"
-              disabled={lockoutTime && Date.now() < lockoutTime}
-              className="w-full bg-[#2F4B3C] hover:bg-[#A65D3D] disabled:bg-gray-300 text-white font-bold py-3 rounded text-xs uppercase tracking-widest transition-colors cursor-pointer mt-2"
-            >
-              {isLoginTab ? 'Sign In' : 'Create Account'}
-            </button>
+              {/* Social Login Options */}
+              {isLoginTab && (
+                <div className="mt-6 pt-5 border-t border-gray-200/80 space-y-3">
+                  <div className="text-center text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    Quick Access
+                  </div>
+                  
+                  <div id="google-signin-button" className="w-full flex justify-center"></div>
 
-            {isLoginTab && (
-              <div className="space-y-3 pt-3 border-t border-gray-100">
-                <div className="text-center text-[9px] text-gray-400 font-bold uppercase tracking-wider">Social Login</div>
-                
-                {/* Google Sign-in */}
-                <div id="google-signin-button" className="w-full flex justify-center"></div>
-                
-                {/* Developer simulation */}
-                <button
-                  type="button"
-                  onClick={handleSimulateGoogleLogin}
-                  className="w-full flex items-center justify-center gap-1.5 border border-dashed border-[#A65D3D] bg-[#A65D3D]/5 hover:bg-[#A65D3D]/10 text-[#8A6A4B] font-bold py-2 rounded text-[10px] uppercase tracking-wider transition-colors cursor-pointer"
-                >
-                  🚀 Simulated Google Admin Sourcing Bypass
-                </button>
-              </div>
-            )}
+                  <button
+                    type="button"
+                    onClick={handleSimulateGoogleLogin}
+                    className="w-full flex items-center justify-center gap-2 border border-dashed border-[#A65D3D] bg-[#A65D3D]/5 hover:bg-[#A65D3D]/10 text-[#8A6A4B] font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    🚀 Developer Google Admin Sourcing Bypass
+                  </button>
 
-            {isLoginTab && (
-              <div className="text-center pt-2 border-t border-gray-50">
-                <span className="text-[10px] text-gray-400 block font-light">Demo Customer account credentials:</span>
-                <span className="text-[11px] text-[#2F4B3C] font-semibold block">customer@ripomafarm.com / customer123</span>
-              </div>
-            )}
-          </form>
+                  <div className="text-center pt-2">
+                    <span className="text-[10px] text-gray-400 block">Demo Customer Account:</span>
+                    <span className="text-xs text-[#2F4B3C] font-semibold">customer@ripomafarm.com / customer123</span>
+                  </div>
+                </div>
+              )}
+
+            </form>
+
+          </div>
+
         </div>
+
       </div>
     );
   }
@@ -484,29 +552,76 @@ const Profile = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 font-sans text-left bg-[#F6EFE3]">
       
-      {/* Header bar */}
-      <div className="bg-white border border-[#8A6A4B]/10 rounded-xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-6">
+      {/* Farm Story Modal */}
+      <FarmStoryModal isOpen={isStoryModalOpen} onClose={() => setIsStoryModalOpen(false)} />
+
+      {/* Header bar & Engagement Widgets */}
+      <div className="bg-white border border-[#8A6A4B]/10 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col lg:flex-row justify-between items-center gap-6">
+        
         <div className="flex items-center gap-4 text-center sm:text-left">
-          <div className="w-14 h-14 bg-[#2F4B3C]/5 rounded-full flex items-center justify-center font-bold text-[#2F4B3C] text-xl border border-[#2F4B3C]/10 select-none">
+          <div className="w-16 h-16 bg-[#2F4B3C]/10 rounded-2xl flex items-center justify-center font-serif font-bold text-[#2F4B3C] text-2xl border border-[#2F4B3C]/20 shadow-xs">
             {user.name.charAt(0)}
           </div>
           <div>
-            <h1 className="text-xl font-serif font-bold text-[#2F4B3C] leading-snug">{user.name}</h1>
-            <p className="text-xs text-gray-400 mt-1 font-light">{user.email} • Sourcing Level: <span className="font-semibold uppercase text-[#A65D3D]">{user.role}</span></p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-serif font-bold text-[#2F4B3C] leading-snug">{user.name}</h1>
+              <span className="px-2.5 py-0.5 rounded-full bg-[#2F4B3C]/10 text-[#2F4B3C] text-[10px] font-bold uppercase tracking-wider">
+                {user.role}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
           </div>
         </div>
-        <button
-          onClick={logout}
-          className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2.5 rounded text-[10px] uppercase tracking-widest transition-colors cursor-pointer shrink-0 border border-red-100"
-        >
-          <LogOut className="w-3.5 h-3.5" /> Log Out
-        </button>
+
+        {/* Engagement Widgets: Points, Streak & Farm Stories */}
+        <div className="flex items-center gap-3 flex-wrap justify-center sm:justify-start">
+          
+          {/* Freshness Streak Counter */}
+          <div className="bg-[#F6EFE3] border border-[#8A6A4B]/20 px-4 py-2.5 rounded-xl flex items-center gap-2.5 shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-[#A65D3D]/10 text-[#A65D3D] flex items-center justify-center">
+              <Flame className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[9px] uppercase tracking-wider text-gray-500 font-bold block">Freshness Streak</span>
+              <span className="text-xs font-bold text-[#2F4B3C]">6 Weeks Active 🔥</span>
+            </div>
+          </div>
+
+          {/* Harvest Loyalty Points */}
+          <div className="bg-[#2F4B3C]/5 border border-[#2F4B3C]/15 px-4 py-2.5 rounded-xl flex items-center gap-2.5 shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-[#2F4B3C] text-[#F6EFE3] flex items-center justify-center">
+              <HenIcon className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[9px] uppercase tracking-wider text-gray-500 font-bold block">Harvest Points</span>
+              <span className="text-xs font-bold text-[#2F4B3C]">185 Pts ($18.50 Off)</span>
+            </div>
+          </div>
+
+          {/* Farm Story Unlock Button */}
+          <button
+            onClick={() => setIsStoryModalOpen(true)}
+            className="bg-[#A65D3D] hover:bg-[#8A6A4B] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
+          >
+            <Award className="w-4 h-4" />
+            <span>Farm Stories</span>
+          </button>
+
+          <button
+            onClick={logout}
+            className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold px-3 py-2.5 rounded-xl text-[10px] uppercase tracking-widest transition-colors cursor-pointer shrink-0 border border-red-100"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Log Out
+          </button>
+        </div>
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* Navigation Tabs */}
         <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm flex flex-col gap-1 lg:col-span-3">
+
           <button
             onClick={() => setActiveTab('orders')}
             className={`flex items-center gap-2 px-4 py-3 rounded text-[10px] uppercase tracking-widest font-bold text-left transition-colors cursor-pointer ${

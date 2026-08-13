@@ -22,6 +22,9 @@ import {
 } from 'lucide-react';
 import { HenIcon } from '../components/FarmIcons';
 
+import AdminLogin from './AdminLogin';
+import { Flame } from 'lucide-react';
+
 const AdminDashboard = () => {
   const { user, loading } = useContext(AuthContext);
   const { showToast } = useContext(NotificationContext);
@@ -38,13 +41,10 @@ const AdminDashboard = () => {
   const [searchResults, setSearchResults] = useState({ products: [], orders: [], workers: [] });
   const [indexing, setIndexing] = useState(false);
 
-  // Security check
-  useEffect(() => {
-    if (!loading && (!user || (user.role !== 'admin' && user.role !== 'worker'))) {
-      showToast('Access denied. Admin or Staff privileges required.', 'error');
-      navigate('/profile');
-    }
-  }, [user, loading, navigate]);
+  // Security check: render dedicated AdminLogin if unauthenticated
+  if (!loading && (!user || (user.role !== 'admin' && user.role !== 'worker'))) {
+    return <AdminLogin onSuccess={() => navigate('/admin')} />;
+  }
 
   // Load notifications
   const fetchNotifs = async () => {
@@ -298,8 +298,14 @@ const AdminDashboard = () => {
             </button>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             
+            {/* Daily Ops Streak Counter */}
+            <div className="hidden lg:flex items-center gap-1.5 bg-[#A65D3D]/10 border border-[#A65D3D]/20 px-3 py-1 rounded-full text-[10px] font-bold text-[#A65D3D] select-none animate-pop-scale">
+              <Flame className="w-3.5 h-3.5 fill-current text-[#A65D3D]" />
+              <span>Order fulfillment on time: 14 days running! 🔥</span>
+            </div>
+
             {/* Database status indicators */}
             <div className="hidden sm:flex items-center gap-1.5 bg-[#2F4B3C]/15 border border-[#2F4B3C]/20 px-3 py-1 rounded text-[9px] font-bold uppercase tracking-wider text-[#2F4B3C]">
               <ShieldCheck className="w-3.5 h-3.5 text-[#2F4B3C]" />

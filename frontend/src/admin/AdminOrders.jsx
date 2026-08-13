@@ -3,11 +3,29 @@ import axios from 'axios';
 import { NotificationContext } from '../context/NotificationContext';
 import { 
   ClipboardList, CheckCircle, PackageCheck, Truck, ShieldCheck, 
-  Trash2, X, Printer, Loader, AlertTriangle, ChevronRight, Filter, PlusCircle 
+  Trash2, X, Printer, Loader, AlertTriangle, ChevronRight, Filter, PlusCircle, CheckCircle2
 } from 'lucide-react';
+import { QuantityStepper } from '../components/FormFields';
+
+// Satisfying row flash on completion (Packed / Delivered)
+const useFulfilmentFlash = () => {
+  const [flashedOrders, setFlashedOrders] = useState(new Set());
+  const triggerFlash = (orderId) => {
+    setFlashedOrders(prev => new Set([...prev, orderId]));
+    setTimeout(() => {
+      setFlashedOrders(prev => {
+        const next = new Set([...prev]);
+        next.delete(orderId);
+        return next;
+      });
+    }, 1400);
+  };
+  return { flashedOrders, triggerFlash };
+};
 
 const AdminOrders = () => {
   const { showToast } = useContext(NotificationContext);
+  const { flashedOrders, triggerFlash } = useFulfilmentFlash();
   
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
@@ -89,7 +107,13 @@ const AdminOrders = () => {
         payload.trackingNumber = `TRK-SHIP-${Math.floor(100000 + Math.random() * 900000)}`;
       }
       await axios.put(`/api/orders/${orderId}/status`, payload);
-      showToast(`Order status updated to: ${newStatus}`, 'success');
+      
+      // Trigger satisfying row flash animation for milestone transitions
+      if (newStatus === 'Packed' || newStatus === 'Delivered') {
+        triggerFlash(orderId);
+      }
+      
+      showToast(`Order marked: ${newStatus} ✓`, 'success');
       fetchData();
     } catch (err) {
       showToast('Failed to update status.', 'error');
@@ -351,7 +375,14 @@ const AdminOrders = () => {
                 </thead>
                 <tbody>
                   {filteredOrders.map(order => (
-                    <tr key={order._id} className="border-b border-gray-50 hover:bg-[#F6EFE3]/30 transition-colors">
+                    <tr 
+                      key={order._id} 
+                      className={`border-b border-gray-50 hover:bg-[#F6EFE3]/30 transition-all duration-500 ${
+                        flashedOrders.has(order._id) 
+                          ? 'bg-emerald-50 border-emerald-200 shadow-sm scale-[1.001]' 
+                          : ''
+                      }`}
+                    >
                       <td className="p-4 font-mono font-bold text-gray-450">{order.invoiceNumber}</td>
                       <td className="p-4">
                         <div className="text-gray-900 font-bold">{order.customerDetails.name}</div>

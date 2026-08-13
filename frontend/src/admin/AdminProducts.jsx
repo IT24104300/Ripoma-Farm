@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { NotificationContext } from '../context/NotificationContext';
 import { Plus, Edit2, Trash2, Search, X, Loader, Tag, AlertTriangle, CheckCircle, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { QuantityStepper } from '../components/FormFields';
 
 const AdminProducts = () => {
   const { showToast } = useContext(NotificationContext);
@@ -755,16 +756,23 @@ const AdminProducts = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block">Base Stock Count</label>
-                    <input
-                      type="number"
-                      name="stock"
-                      value={form.stock}
-                      onChange={handleFormChange}
-                      onBlur={handleBlur}
-                      className={getInputClass('stock')}
-                    />
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block">Base Stock Count (Units)</label>
+                    <div className="flex items-center gap-4">
+                      <QuantityStepper
+                        value={parseInt(form.stock) || 0}
+                        min={0}
+                        max={9999}
+                        onChange={(newVal) => {
+                          setForm(prev => ({ ...prev, stock: String(newVal) }));
+                          if (touched.stock) {
+                            const err = validateField('stock', String(newVal));
+                            setErrors(prev => ({ ...prev, stock: err }));
+                          }
+                        }}
+                      />
+                      <span className="text-xs text-gray-500 font-medium">Units in inventory</span>
+                    </div>
                     {touched.stock && errors.stock && (
                       <span className="text-red-500 font-bold text-[9px] tracking-wide flex items-center gap-1 mt-0.5">
                         <AlertTriangle className="w-3 h-3 shrink-0" /> {errors.stock}

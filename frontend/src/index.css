@@ -166,19 +166,73 @@ h1, h2, h3, .font-serif-accent {
 }
 
 .input-valid {
-  border-color: #3E6B6B !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%233E6B6B' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M4.5 12.75l6 6 9-13.5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 14px;
-  padding-right: 32px !important;
+  border-color: #2F4B3C !important;
 }
 
 .input-invalid {
   border-color: #A65D3D !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23A65D3D' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 15px;
-  padding-right: 32px !important;
 }
+
+/* Keyframes & Engagement Micro-animations */
+@keyframes formShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+@keyframes checkmarkDraw {
+  0% { stroke-dashoffset: 24; opacity: 0; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes panBgSlow {
+  0% { transform: scale(1.03) translate(0%, 0%); }
+  50% { transform: scale(1.08) translate(-1.5%, -1%); }
+  100% { transform: scale(1.03) translate(0%, 0%); }
+}
+
+@keyframes popScale {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideDownFade {
+  0% { opacity: 0; transform: translateY(-4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ringPulse {
+  0% { box-shadow: 0 0 0 0 rgba(47, 75, 60, 0.25); }
+  70% { box-shadow: 0 0 0 8px rgba(47, 75, 60, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(47, 75, 60, 0); }
+}
+
+.animate-form-shake {
+  animation: formShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.animate-pan-bg {
+  animation: panBgSlow 30s ease-in-out infinite alternate;
+}
+
+.animate-pop-scale {
+  animation: popScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-slide-down-fade {
+  animation: slideDownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.focus-glow-green:focus {
+  outline: none;
+  border-color: #2F4B3C;
+  box-shadow: 0 0 0 3px rgba(47, 75, 60, 0.15);
+}
+
+.focus-glow-rust:focus {
+  outline: none;
+  border-color: #A65D3D;
+  box-shadow: 0 0 0 3px rgba(166, 93, 61, 0.15);
+}
+
