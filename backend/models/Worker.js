@@ -11,8 +11,8 @@ const TaskSchema = new mongoose.Schema({
 const WorkerSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
+    ref: 'Admin',
+    required: false,
   },
   name: {
     type: String,

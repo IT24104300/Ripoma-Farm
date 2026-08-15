@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import connectDB from '../config/db.js';
+import Customer from '../models/Customer.js';
+import Admin, { DEFAULT_ROLE_PERMISSIONS } from '../models/Admin.js';
 import User from '../models/User.js';
 import Product from '../models/Product.js';
 import Category from '../models/Category.js';
@@ -11,32 +13,37 @@ import Transaction from '../models/Transaction.js';
 import Worker from '../models/Worker.js';
 import Setting from '../models/Setting.js';
 import Notification from '../models/Notification.js';
-import { writeData, jsonDb } from './jsonDb.js';
+import { writeData } from './jsonDb.js';
 
 dotenv.config();
 
 const seedData = async () => {
-  // Check DB connection
   await connectDB();
 
-  console.log('Starting Database Seeding...');
+  console.log('Starting Separated Database Seeding (Admin & Customer)...');
 
-  // 1. Password hash
+  // Password hashes with secure salts
   const salt = await bcrypt.genSalt(10);
-  const adminPassword = await bcrypt.hash('admin123', salt);
-  const workerPassword = await bcrypt.hash('worker123', salt);
-  const customerPassword = await bcrypt.hash('customer123', salt);
+  const adminPassword = await bcrypt.hash('Admin@1234', salt); // Min 10 chars
+  const workerPassword = await bcrypt.hash('Worker@1234', salt); // Min 10 chars
+  const customerPassword = await bcrypt.hash('Customer@123', salt); // Min 8 chars
 
-  // 2. Default Users
-  const users = [
+  // 1. Admins table (Super Admin & Workers with Dashboard Access)
+  const admins = [
     {
       _id: '660a1234b123456789abcdef',
-      name: 'Ripoma Admin',
+      name: 'Super Administrator',
       email: 'admin@ripomafarm.com',
       password: adminPassword,
-      role: 'admin',
+      role: 'super_admin',
+      permissions: DEFAULT_ROLE_PERMISSIONS.super_admin,
+      two_factor_enabled: true,
+      two_factor_secret: 'RIPOMA-SECURE-2FA-FARM',
+      status: 'active',
       phone: '+1 (555) 012-3456',
-      address: { street: '100 Barn Lane', city: 'Agro Valley', state: 'GreenState', zipCode: '90210', country: 'Agroland' },
+      failedLoginAttempts: 0,
+      lockoutUntil: null,
+      loginHistory: [],
       createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
     },
     {
@@ -44,19 +51,43 @@ const seedData = async () => {
       name: 'Worker Dave',
       email: 'worker@ripomafarm.com',
       password: workerPassword,
-      role: 'worker',
+      role: 'supervisor',
+      permissions: DEFAULT_ROLE_PERMISSIONS.supervisor,
+      two_factor_enabled: true,
+      two_factor_secret: 'RIPOMA-SECURE-2FA-FARM',
+      status: 'active',
       phone: '+1 (555) 012-7890',
-      address: { street: '102 Farm Road', city: 'Agro Valley', state: 'GreenState', zipCode: '90210', country: 'Agroland' },
+      failedLoginAttempts: 0,
+      lockoutUntil: null,
+      loginHistory: [],
       createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    },
+    }
+  ];
+
+  // 2. Customers table (Storefront Customers only)
+  const customers = [
     {
       _id: '660c1234b123456789abcdef',
       name: 'Sarah Customer',
       email: 'customer@ripomafarm.com',
       password: customerPassword,
-      role: 'customer',
       phone: '+1 (555) 012-5555',
-      address: { street: '456 Garden Avenue', city: 'Bloomfield', state: 'SunnyState', zipCode: '10001', country: 'Agroland' },
+      addresses: [
+        {
+          street: '456 Garden Avenue',
+          city: 'Bloomfield',
+          state: 'SunnyState',
+          zipCode: '10001',
+          country: 'Agroland',
+          isDefault: true
+        }
+      ],
+      loyalty_points: 120,
+      wishlist: [],
+      status: 'active',
+      failedLoginAttempts: 0,
+      lockoutUntil: null,
+      loginHistory: [],
       createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     }
   ];
@@ -166,7 +197,7 @@ const seedData = async () => {
       basePrice: 8.99,
       costPrice: 4.00,
       discount: 15,
-      stock: 8, // Set low stock to trigger low-stock alert!
+      stock: 8,
       sku: 'RIP-CHK-BREAST',
       variants: [
         { name: '500g Pack', price: 8.99, costPrice: 4.00, stock: 5, sku: 'RIP-CHK-B-500' },
@@ -200,7 +231,7 @@ const seedData = async () => {
   const workers = [
     {
       _id: '660f1234b123456789abcdef',
-      userId: '660b1234b123456789abcdef', // Dave
+      userId: '660b1234b123456789abcdef', // Worker Dave Admin Record
       name: 'Worker Dave',
       email: 'worker@ripomafarm.com',
       phone: '+1 (555) 012-7890',
@@ -224,7 +255,7 @@ const seedData = async () => {
   const orders = [
     {
       _id: '660f7774b123456789abcde1',
-      user: '660c1234b123456789abcdef', // Sarah
+      user: '660c1234b123456789abcdef', // Sarah Customer
       customerDetails: {
         name: 'Sarah Customer',
         email: 'customer@ripomafarm.com',
@@ -237,7 +268,7 @@ const seedData = async () => {
       },
       items: [
         {
-          productId: '660d1234b123456789abcde3', // Eggs
+          productId: '660d1234b123456789abcde3',
           name: 'Organic Farm Fresh Eggs (Brown)',
           image: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=600',
           variantName: 'Tray of 30 (Grade A)',
@@ -246,7 +277,7 @@ const seedData = async () => {
           costPrice: 4.50
         },
         {
-          productId: '660d1234b123456789abcde1', // Dry fish
+          productId: '660d1234b123456789abcde1',
           name: 'Sun-Dried Anchovy (Neetholi)',
           image: 'https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600',
           variantName: '100g Pack',
@@ -267,7 +298,7 @@ const seedData = async () => {
     },
     {
       _id: '660f7774b123456789abcde2',
-      user: '660c1234b123456789abcdef', // Sarah
+      user: '660c1234b123456789abcdef', // Sarah Customer
       customerDetails: {
         name: 'Sarah Customer',
         email: 'customer@ripomafarm.com',
@@ -280,7 +311,7 @@ const seedData = async () => {
       },
       items: [
         {
-          productId: '660d1234b123456789abcde4', // Whole Chicken
+          productId: '660d1234b123456789abcde4',
           name: 'Whole Broiler Chicken',
           image: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=600',
           variantName: '1.5kg Size',
@@ -301,24 +332,17 @@ const seedData = async () => {
     }
   ];
 
-  // 8. Transactions (Historical over 3 months)
+  // 8. Transactions
   const transactions = [
-    // Month 1 (March)
     { type: 'income', amount: 480.00, costOfGoods: 220.00, category: 'sales', description: 'March Sales Aggregation', date: new Date('2026-03-25T12:00:00Z') },
     { type: 'expense', amount: 150.00, category: 'salary', description: 'Dave Wages March', date: new Date('2026-03-30T17:00:00Z') },
     { type: 'expense', amount: 90.00, category: 'inventory_purchase', description: 'Feed purchase Barn A', date: new Date('2026-03-05T09:00:00Z') },
-
-    // Month 2 (April)
     { type: 'income', amount: 720.00, costOfGoods: 310.00, category: 'sales', description: 'April Sales Aggregation', date: new Date('2026-04-20T12:00:00Z') },
     { type: 'expense', amount: 150.00, category: 'salary', description: 'Dave Wages April', date: new Date('2026-04-30T17:00:00Z') },
     { type: 'expense', amount: 120.00, category: 'inventory_purchase', description: 'Egg box cartons bought', date: new Date('2026-04-12T10:00:00Z') },
-
-    // Month 3 (May)
     { type: 'income', amount: 1150.00, costOfGoods: 530.00, category: 'sales', description: 'May Sales Aggregation', date: new Date('2026-05-18T12:00:00Z') },
     { type: 'expense', amount: 180.00, category: 'salary', description: 'Dave Wages May', date: new Date('2026-05-31T17:00:00Z') },
     { type: 'expense', amount: 80.00, category: 'other_expense', description: 'Power/Utilities Barn B', date: new Date('2026-05-15T08:00:00Z') },
-
-    // Month 4 (June / Current)
     { type: 'income', amount: 38.40, costOfGoods: 13.20, category: 'sales', description: 'Order #660f7774b123456789abcde1', date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
     { type: 'income', amount: 27.19, costOfGoods: 8.50, category: 'sales', description: 'Order #660f7774b123456789abcde2', date: new Date(Date.now() - 12 * 60 * 60 * 1000) }
   ];
@@ -331,13 +355,14 @@ const seedData = async () => {
 
   // 10. Inventory Logs
   const inventorylogs = [
-    { productId: '660d1234b123456789abcde5', productName: 'Premium Chicken Breast (Boneless)', variantName: '500g Pack', changeType: 'restock', quantityChanged: 5, stockAfterChange: 5, description: 'Initial seed stock', performedBy: 'Ripoma Admin', createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
-    { productId: '660d1234b123456789abcde5', productName: 'Premium Chicken Breast (Boneless)', variantName: '1kg Pack', changeType: 'restock', quantityChanged: 3, stockAfterChange: 3, description: 'Initial seed stock', performedBy: 'Ripoma Admin', createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() }
+    { productId: '660d1234b123456789abcde5', productName: 'Premium Chicken Breast (Boneless)', variantName: '500g Pack', changeType: 'restock', quantityChanged: 5, stockAfterChange: 5, description: 'Initial seed stock', performedBy: 'Super Administrator', createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+    { productId: '660d1234b123456789abcde5', productName: 'Premium Chicken Breast (Boneless)', variantName: '1kg Pack', changeType: 'restock', quantityChanged: 3, stockAfterChange: 3, description: 'Initial seed stock', performedBy: 'Super Administrator', createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() }
   ];
 
   if (global.dbConnected) {
     try {
-      // Clear current Mongoose DB
+      await Admin.deleteMany({});
+      await Customer.deleteMany({});
       await User.deleteMany({});
       await Product.deleteMany({});
       await Category.deleteMany({});
@@ -348,8 +373,8 @@ const seedData = async () => {
       await Setting.deleteMany({});
       await Notification.deleteMany({});
 
-      // Insert fresh Mongoose data
-      await User.insertMany(users);
+      await Admin.insertMany(admins);
+      await Customer.insertMany(customers);
       await Category.insertMany(categories);
       await Product.insertMany(products);
       await Setting.insertMany(settings);
@@ -359,14 +384,14 @@ const seedData = async () => {
       await Notification.insertMany(notifications);
       await InventoryLog.insertMany(inventorylogs);
 
-      console.log('✅ MongoDB Seeding Complete! Connected instances are seeded.');
+      console.log('✅ MongoDB Seeding Complete! Separate Admin & Customer collections seeded.');
     } catch (err) {
       console.error('❌ Mongoose Seed Error:', err.message);
     }
   } else {
-    // Write directly to JSON files
     try {
-      writeData('users', users);
+      writeData('admins', admins);
+      writeData('customers', customers);
       writeData('categories', categories);
       writeData('products', products);
       writeData('settings', settings);
@@ -376,13 +401,12 @@ const seedData = async () => {
       writeData('notifications', notifications);
       writeData('inventorylogs', inventorylogs);
 
-      console.log('✅ JSON File Seeding Complete! Local data files written successfully.');
+      console.log('✅ JSON File Seeding Complete! Separate admin and customer collections written.');
     } catch (err) {
       console.error('❌ JSON Seed Error:', err.message);
     }
   }
 
-  // Gracefully exit connection if in DB mode
   if (global.dbConnected) {
     mongoose.connection.close();
   }

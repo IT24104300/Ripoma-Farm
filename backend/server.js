@@ -5,9 +5,12 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+import { bootstrapSeedSuperAdmin } from './controllers/adminAuthController.js';
 
 // Route Imports
 import authRoutes from './routes/authRoutes.js';
+import customerAuthRoutes from './routes/customerAuthRoutes.js';
+import adminAuthRoutes from './routes/adminAuthRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import inventoryRoutes from './routes/inventoryRoutes.js';
@@ -19,7 +22,10 @@ import notificationRoutes from './routes/notificationRoutes.js';
 dotenv.config();
 
 // Connect to Database (falls back to local JSON if Mongo offline)
-connectDB();
+connectDB().then(() => {
+  // Bootstrap initial Super Admin account if needed
+  bootstrapSeedSuperAdmin();
+});
 
 const app = express();
 
@@ -31,7 +37,7 @@ app.use(express.json());
 // API Rate Limiter
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 mins
-  max: 200, // Limit each IP to 200 requests per 15 minutes
+  max: 300, // Limit each IP to 300 requests per 15 minutes
   message: { message: 'Too many requests from this IP, please try again in 15 minutes.' }
 });
 app.use('/api', limiter);
@@ -44,7 +50,12 @@ app.get('/', (req, res) => {
   });
 });
 
-// Bind API Routes
+// Bind API v1 Auth Routes (Strict separation)
+app.use('/api/v1/auth/customer', customerAuthRoutes);
+app.use('/api/v1/auth/admin', adminAuthRoutes);
+app.use('/api/v1/auth', authRoutes);
+
+// Bind Standard API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);

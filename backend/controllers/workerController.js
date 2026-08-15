@@ -1,7 +1,19 @@
 import Worker from '../models/Worker.js';
-import User from '../models/User.js';
+import Admin, { DEFAULT_ROLE_PERMISSIONS } from '../models/Admin.js';
 import { jsonDb } from '../utils/jsonDb.js';
 import bcrypt from 'bcryptjs';
+
+// Map display role titles to system admin roles
+const normalizeAdminRole = (roleTitle) => {
+  const lower = (roleTitle || '').toLowerCase();
+  if (lower.includes('super')) return 'super_admin';
+  if (lower.includes('order')) return 'order_manager';
+  if (lower.includes('supervisor')) return 'supervisor';
+  if (lower.includes('farmhand') || lower.includes('feeder') || lower.includes('cleaner') || lower.includes('poultry')) return 'farmhand';
+  if (lower.includes('fish') || lower.includes('fisher')) return 'fisher';
+  if (lower.includes('pack')) return 'packer';
+  return 'admin';
+};
 
 // @desc    Get all workers
 // @route   GET /api/workers
@@ -20,36 +32,53 @@ export const getWorkers = async (req, res) => {
   }
 };
 
-// @desc    Create/Add a worker
+// @desc    Create/Add a worker (Adds worker registry + Admin credentials)
 // @route   POST /api/workers
 // @access  Private/Admin
 export const addWorker = async (req, res) => {
   const { name, email, password, phone, role, hourlyRate } = req.body;
 
   try {
-    // 1. Create a user credential first
-    let user = null;
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
+
+    // Enforce Admin/Worker Password Policy: Min 10 characters
+    if (password.length < 10) {
+      return res.status(400).json({ message: 'Worker/Admin dashboard password must be at least 10 characters long' });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const systemRole = normalizeAdminRole(role);
+    const assignedPermissions = DEFAULT_ROLE_PERMISSIONS[systemRole] || DEFAULT_ROLE_PERMISSIONS.admin;
+
+    // 1. Create Admin/Worker credential in admins table
+    let adminRecord = null;
     let userId = null;
 
     if (global.dbConnected) {
-      const userExists = await User.findOne({ email });
-      if (userExists) {
-        return res.status(400).json({ message: 'User with this email already exists' });
+      const adminExists = await Admin.findOne({ email: cleanEmail });
+      if (adminExists) {
+        return res.status(400).json({ message: 'An administrative account with this email already exists' });
       }
 
-      user = await User.create({
-        name,
-        email,
-        password,
-        role: 'worker',
+      adminRecord = await Admin.create({
+        name: name.trim(),
+        email: cleanEmail,
+        password, // Pre-save hook hashes with bcrypt
+        role: systemRole,
+        permissions: assignedPermissions,
+        two_factor_enabled: true,
+        status: 'active',
+        phone: phone || ''
       });
-      userId = user._id;
+      userId = adminRecord._id;
 
-      // 2. Create the Worker registry
+      // 2. Create the Worker operational registry
       const worker = await Worker.create({
         userId,
-        name,
-        email,
+        name: name.trim(),
+        email: cleanEmail,
         phone: phone || '',
         role: role || 'Staff/Worker',
         hourlyRate: Number(hourlyRate || 15),
@@ -57,30 +86,36 @@ export const addWorker = async (req, res) => {
         attendance: [],
       });
 
-      res.status(201).json(worker);
+      return res.status(201).json(worker);
     } else {
-      const userExists = jsonDb.findOne('users', u => u.email === email);
-      if (userExists) {
-        return res.status(400).json({ message: 'User with this email already exists' });
+      const adminExists = jsonDb.findOne('admins', a => a.email?.toLowerCase() === cleanEmail);
+      if (adminExists) {
+        return res.status(400).json({ message: 'An administrative account with this email already exists' });
       }
 
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      user = jsonDb.create('users', {
-        name,
-        email,
+      adminRecord = jsonDb.create('admins', {
+        name: name.trim(),
+        email: cleanEmail,
         password: hashedPassword,
-        role: 'worker',
+        role: systemRole,
+        permissions: assignedPermissions,
+        two_factor_enabled: true,
+        two_factor_secret: 'RIPOMA-SECURE-2FA-FARM',
+        status: 'active',
         phone: phone || '',
-        address: { street: '', city: '', state: '', zipCode: '', country: '' }
+        failedLoginAttempts: 0,
+        lockoutUntil: null,
+        loginHistory: []
       });
-      userId = user._id;
+      userId = adminRecord._id;
 
       const worker = jsonDb.create('workers', {
         userId,
-        name,
-        email,
+        name: name.trim(),
+        email: cleanEmail,
         phone: phone || '',
         status: 'active',
         role: role || 'Staff/Worker',
@@ -89,10 +124,10 @@ export const addWorker = async (req, res) => {
         attendance: [],
       });
 
-      res.status(201).json(worker);
+      return res.status(201).json(worker);
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -114,6 +149,19 @@ export const updateWorker = async (req, res) => {
         worker.hourlyRate = hourlyRate !== undefined ? Number(hourlyRate) : worker.hourlyRate;
 
         await worker.save();
+
+        // Sync with Admin record if linked
+        if (worker.userId) {
+          const systemRole = normalizeAdminRole(worker.role);
+          await Admin.findByIdAndUpdate(worker.userId, {
+            name: worker.name,
+            phone: worker.phone,
+            status: worker.status,
+            role: systemRole,
+            permissions: DEFAULT_ROLE_PERMISSIONS[systemRole] || DEFAULT_ROLE_PERMISSIONS.admin
+          });
+        }
+
         res.json(worker);
       } else {
         res.status(404).json({ message: 'Worker registry not found' });
@@ -128,6 +176,18 @@ export const updateWorker = async (req, res) => {
           status: status || worker.status,
           hourlyRate: hourlyRate !== undefined ? Number(hourlyRate) : worker.hourlyRate,
         });
+
+        if (worker.userId) {
+          const systemRole = normalizeAdminRole(updated.role);
+          jsonDb.findByIdAndUpdate('admins', worker.userId, {
+            name: updated.name,
+            phone: updated.phone,
+            status: updated.status,
+            role: systemRole,
+            permissions: DEFAULT_ROLE_PERMISSIONS[systemRole] || DEFAULT_ROLE_PERMISSIONS.admin
+          });
+        }
+
         res.json(updated);
       } else {
         res.status(404).json({ message: 'Worker registry not found' });
@@ -237,7 +297,6 @@ export const logAttendance = async (req, res) => {
     if (global.dbConnected) {
       const worker = await Worker.findById(id);
       if (worker) {
-        // Check if attendance already logged for date
         const existingIdx = worker.attendance.findIndex(a => a.date === date);
         if (existingIdx !== -1) {
           worker.attendance[existingIdx].status = status;

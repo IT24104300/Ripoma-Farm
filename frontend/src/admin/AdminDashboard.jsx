@@ -27,7 +27,8 @@ import RipomaLogo from '../components/RipomaLogo';
 import { Flame } from 'lucide-react';
 
 const AdminDashboard = () => {
-  const { user, loading } = useContext(AuthContext);
+  const { user, adminUser, adminLogout, logout, loading } = useContext(AuthContext);
+  const effectiveAdmin = adminUser || (user?.role && user.role !== 'customer' ? user : null);
   const { showToast } = useContext(NotificationContext);
   const navigate = useNavigate();
 
@@ -138,7 +139,7 @@ const AdminDashboard = () => {
     );
   }
 
-  if (!user || (user.role !== 'admin' && user.role !== 'worker')) {
+  if (!effectiveAdmin) {
     return <AdminLogin onSuccess={() => navigate('/admin')} />;
   }
 
@@ -242,7 +243,7 @@ const AdminDashboard = () => {
               <DollarSign className="w-4 h-4 stroke-[1.5]" /> Analytics
             </button>
 
-            {user.role === 'admin' && (
+            {(effectiveAdmin.role === 'admin' || effectiveAdmin.role === 'super_admin') && (
               <button
                 onClick={() => setActiveView('settings')}
                 className={`flex items-center gap-3 px-4 py-3 rounded text-left transition-colors cursor-pointer ${
@@ -255,86 +256,78 @@ const AdminDashboard = () => {
           </nav>
         </div>
 
-        {/* Storefront return */}
-        <div className="p-6 border-t border-white/5">
+        {/* Storefront return & Logout */}
+        <div className="p-6 border-t border-white/5 space-y-2">
           <Link
             to="/"
             className="w-full flex items-center justify-center gap-1.5 bg-[#A65D3D] hover:bg-[#A65D3D]/90 text-white text-[9px] font-bold uppercase tracking-widest py-3.5 rounded transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Storefront
           </Link>
+          <button
+            onClick={() => {
+              if (adminLogout) adminLogout();
+              else if (logout) logout();
+            }}
+            className="w-full flex items-center justify-center gap-1.5 bg-white/10 hover:bg-red-900/60 text-[#F6EFE3] text-[9px] font-bold uppercase tracking-widest py-2 rounded transition-colors cursor-pointer"
+          >
+            Lock Office (Logout)
+          </button>
         </div>
 
       </aside>
 
-      {/* 2. DASHBOARD VIEWPORT */}
-      <div className="grow flex flex-col min-w-0">
+      {/* 2. MAIN APPLICATION CONTENT VIEWPORT */}
+      <div className="grow flex flex-col min-w-0 h-screen overflow-hidden">
         
-        {/* Header navigation bar */}
-        <header className="bg-white border-b border-gray-200 h-16 px-6 sm:px-8 flex items-center justify-between shrink-0 shadow-sm z-20">
+        {/* Top Header Bar */}
+        <header className="bg-white border-b border-gray-150/60 h-16 shrink-0 flex items-center justify-between px-6 sm:px-8 z-20 select-none">
           
-          {/* Breadcrumbs & Command trigger */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-semibold text-gray-400">
-              <span>Console</span> 
-              <ChevronRight className="w-3 h-3 text-gray-300" /> 
-              <span className="text-[#2F4B3C] font-black">{getViewLabel()}</span>
-            </div>
-
-            {/* Keyboard-friendly search block */}
-            <button 
-              onClick={() => setIsSearchOpen(true)}
-              className="hidden lg:flex items-center gap-2 bg-[#F6EFE3] border border-gray-200/80 px-3.5 py-1.5 rounded-lg text-[10px] text-gray-450 hover:bg-[#F6EFE3]/85 cursor-pointer selection:bg-transparent"
-            >
-              <Search className="w-3.5 h-3.5 text-gray-400" />
-              <span>Search directory...</span>
-              <kbd className="bg-white px-1.5 py-0.5 border border-gray-300 rounded font-mono text-[9px] text-gray-400">⌘K</kbd>
-            </button>
+            <h1 className="text-base font-serif font-bold text-[#2F4B3C] tracking-tight">{getViewLabel()}</h1>
+            <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 hidden sm:inline-block">
+              ENV: {effectiveAdmin.role}
+            </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            
-            {/* Daily Ops Streak Counter */}
-            <div className="hidden lg:flex items-center gap-1.5 bg-[#A65D3D]/10 border border-[#A65D3D]/20 px-3 py-1 rounded-full text-[10px] font-bold text-[#A65D3D] select-none animate-pop-scale">
-              <Flame className="w-3.5 h-3.5 fill-current text-[#A65D3D]" />
-              <span>Order fulfillment on time: 14 days running! 🔥</span>
-            </div>
+          <div className="flex items-center gap-4">
+            {/* Quick ⌘K Search trigger */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center gap-2 text-xs text-gray-400 bg-gray-50 hover:bg-gray-100 border border-gray-200 py-1.5 px-3 rounded-lg transition-colors cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Quick Jump...</span>
+              <kbd className="text-[9px] font-mono bg-white border border-gray-200 px-1.5 py-0.5 rounded text-gray-500 shadow-xs">⌘K</kbd>
+            </button>
 
-            {/* Database status indicators */}
-            <div className="hidden sm:flex items-center gap-1.5 bg-[#2F4B3C]/15 border border-[#2F4B3C]/20 px-3 py-1 rounded text-[9px] font-bold uppercase tracking-wider text-[#2F4B3C]">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#2F4B3C]" />
-              <span>Coop Database Connected</span>
-            </div>
-
-            {/* Live Alerts Notification Center */}
+            {/* Notification Bell with Badge */}
             <div className="relative">
-              <button 
-                onClick={() => setIsNotifOpen(prev => !prev)}
-                className="p-2 text-gray-450 hover:text-[#2F4B3C] rounded-full hover:bg-[#F6EFE3] transition-colors cursor-pointer relative"
+              <button
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                className="relative p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors cursor-pointer"
               >
-                <Bell className="w-4.5 h-4.5" />
+                <Bell className="w-4 h-4" />
                 {unreadNotifications > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#A65D3D] rounded-full ring-2 ring-white"></span>
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                 )}
               </button>
 
-              {/* Notification Overlay List */}
+              {/* Notification Popover Dropdown */}
               {isNotifOpen && (
-                <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-200 rounded-lg shadow-xl py-2 z-30 font-sans text-xs">
-                  <div className="px-4 py-2 border-b border-gray-150/60 flex justify-between items-center bg-gray-50">
-                    <span className="font-bold text-[#2F4B3C] uppercase tracking-wider text-[9px]">Operations Feed</span>
-                    {unreadNotifications > 0 && (
-                      <button onClick={markAllRead} className="text-[9px] text-[#A65D3D] font-bold hover:underline">Mark all read</button>
-                    )}
+                <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-4 space-y-3 animate-fade-in-up">
+                  <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                    <h3 className="text-xs font-bold font-serif text-[#2F4B3C]">Notifications & Alerts</h3>
+                    <span className="text-[9px] font-mono text-gray-400">{unreadNotifications} Unread</span>
                   </div>
-                  <div className="max-h-64 overflow-y-auto">
+                  <div className="space-y-2 max-h-60 overflow-y-auto text-xs">
                     {notificationsList.length === 0 ? (
-                      <p className="text-center py-6 text-gray-400">All alerts cleared.</p>
+                      <p className="text-gray-400 text-center py-4">No new operational alerts</p>
                     ) : (
                       notificationsList.map(n => (
-                        <div key={n.id || n._id} className={`px-4 py-3 border-b border-gray-50 hover:bg-[#F6EFE3]/30 transition-colors flex gap-2.5 items-start ${!n.read ? 'bg-[#2F4B3C]/5 font-medium' : ''}`}>
-                          <AlertCircle className={`w-4 h-4 shrink-0 mt-0.5 ${n.type === 'danger' ? 'text-red-500' : n.type === 'warning' ? 'text-amber-600' : 'text-[#3E6B6B]'}`} />
-                          <span className="text-gray-700 leading-normal text-[11px]">{n.message}</span>
+                        <div key={n.id || n._id} className={`p-2 rounded border text-left ${n.type === 'danger' ? 'bg-red-50 border-red-100 text-red-800' : n.type === 'warning' ? 'bg-amber-50 border-amber-100 text-amber-800' : 'bg-gray-50 border-gray-100 text-gray-700'}`}>
+                          <p className="font-semibold text-[11px]">{n.title || n.message}</p>
+                          {n.title && <p className="text-[9px] text-gray-500 mt-0.5">{n.message}</p>}
                         </div>
                       ))
                     )}
@@ -346,11 +339,11 @@ const AdminDashboard = () => {
             {/* Profile User block */}
             <div className="flex items-center gap-2.5 border-l border-gray-100 pl-4">
               <div className="w-8 h-8 bg-[#A65D3D] text-white font-bold rounded-full flex items-center justify-center text-xs select-none">
-                {user.name.charAt(0)}
+                {(effectiveAdmin.name || 'A').charAt(0)}
               </div>
               <div className="hidden sm:block text-left">
-                <span className="font-bold text-xs text-gray-900 block leading-tight">{user.name}</span>
-                <span className="text-[9px] text-gray-400 capitalize block leading-none">{user.role} console</span>
+                <span className="font-bold text-xs text-gray-900 block leading-tight">{effectiveAdmin.name}</span>
+                <span className="text-[9px] text-gray-400 capitalize block leading-none">{effectiveAdmin.role} console</span>
               </div>
             </div>
 

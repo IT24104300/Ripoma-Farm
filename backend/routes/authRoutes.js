@@ -1,15 +1,29 @@
 import express from 'express';
-import { registerUser, authUser, getUserProfile, updateUserProfile, googleLogin, toggleWishlist } from '../controllers/authController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import customerAuthRoutes from './customerAuthRoutes.js';
+import adminAuthRoutes from './adminAuthRoutes.js';
+import {
+  registerCustomer,
+  loginCustomer,
+  googleCustomerLogin,
+  getCustomerProfile,
+  updateCustomerProfile,
+  toggleCustomerWishlist
+} from '../controllers/customerAuthController.js';
+import { requireCustomerAuth, protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/register', registerUser);
-router.post('/login', authUser);
-router.post('/google', googleLogin);
-router.post('/wishlist', protect, toggleWishlist);
+// Mount Dedicated Sub-Routers
+router.use('/customer', customerAuthRoutes);
+router.use('/admin', adminAuthRoutes);
+
+// Legacy Root Aliases for backward compatibility
+router.post('/register', registerCustomer);
+router.post('/login', loginCustomer);
+router.post('/google', googleCustomerLogin);
+router.post('/wishlist', protect, toggleCustomerWishlist);
 router.route('/profile')
-  .get(protect, getUserProfile)
-  .put(protect, updateUserProfile);
+  .get(protect, getCustomerProfile)
+  .put(protect, updateCustomerProfile);
 
 export default router;

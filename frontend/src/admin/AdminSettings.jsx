@@ -8,10 +8,10 @@ import {
 
 /* ── Password Strength Meter ────────────────────────────────────── */
 const strengthLevels = [
-  { label: 'Too Short',  color: '#ef4444', bg: 'bg-red-500',     width: 'w-1/4'  },
-  { label: 'Weak',       color: '#f97316', bg: 'bg-orange-400',  width: 'w-2/4'  },
-  { label: 'Fair',       color: '#eab308', bg: 'bg-yellow-400',  width: 'w-3/4'  },
-  { label: 'Strong',     color: '#22c55e', bg: 'bg-emerald-500', width: 'w-full' },
+  { label: 'Too Short', color: '#ef4444', bg: 'bg-red-500', width: 'w-1/4' },
+  { label: 'Weak', color: '#f97316', bg: 'bg-orange-400', width: 'w-2/4' },
+  { label: 'Fair', color: '#eab308', bg: 'bg-yellow-400', width: 'w-3/4' },
+  { label: 'Strong', color: '#22c55e', bg: 'bg-emerald-500', width: 'w-full' },
 ];
 
 const getPasswordStrength = (pw) => {
@@ -80,11 +80,10 @@ const SecureInput = ({ name, label, value, onChange, onBlur, className, errorMsg
 /* ── Animated Security Badge ────────────────────────────────────── */
 const SecurityBadge = ({ active }) => (
   <div
-    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border transition-all duration-500 ${
-      active
+    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider border transition-all duration-500 ${active
         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
         : 'bg-gray-50 text-gray-500 border-gray-200'
-    }`}
+      }`}
   >
     <Shield className={`w-3 h-3 ${active ? 'text-emerald-500' : 'text-gray-400'}`} />
     {active ? '2FA Active' : '2FA Off'}
@@ -587,9 +586,8 @@ const AdminSettings = () => {
 
             {/* Match indicator */}
             {securityForm.confirmPassword && securityForm.newPassword && (
-              <div className={`flex items-center gap-1 text-[9px] font-bold tracking-wider ${
-                securityForm.confirmPassword === securityForm.newPassword ? 'text-emerald-600' : 'text-red-500'
-              }`}>
+              <div className={`flex items-center gap-1 text-[9px] font-bold tracking-wider ${securityForm.confirmPassword === securityForm.newPassword ? 'text-emerald-600' : 'text-red-500'
+                }`}>
                 {securityForm.confirmPassword === securityForm.newPassword
                   ? <><CheckCircle className="w-3 h-3" /> Passwords match</>
                   : <><AlertTriangle className="w-3 h-3" /> Passwords do not match</>
@@ -662,11 +660,11 @@ const AdminSettings = () => {
       {is2FAModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 border border-gray-150/60 shadow-2xl space-y-5 text-center text-xs animate-fade-in-up">
-            
+
             <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mx-auto">
               <ShieldCheck className="w-6 h-6 text-emerald-600" />
             </div>
-            
+
             <div>
               <h3 className="font-serif text-base font-bold text-[#2F4B3C]">Set Up 2FA</h3>
               <p className="text-gray-400 font-light text-[11px] mt-1 leading-relaxed">

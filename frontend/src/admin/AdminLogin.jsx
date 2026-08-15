@@ -1,12 +1,12 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { NotificationContext } from '../context/NotificationContext';
-import { ShieldCheck, Lock, ArrowRight, AlertTriangle, KeyRound } from 'lucide-react';
+import { ShieldCheck, Lock, ArrowRight, AlertTriangle, KeyRound, Loader } from 'lucide-react';
 import { ValidatedInput, PasswordInputWithMeter, TwoFactorCodeInput } from '../components/FormFields';
 import RipomaLogo from '../components/RipomaLogo';
 
 export const AdminLogin = ({ onSuccess }) => {
-  const { login } = useContext(AuthContext);
+  const { adminLogin, adminVerify2FA } = useContext(AuthContext);
   const { showToast } = useContext(NotificationContext);
 
   const [step, setStep] = useState('credentials'); // 'credentials' | '2fa'
@@ -14,12 +14,16 @@ export const AdminLogin = ({ onSuccess }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [rememberDevice, setRememberDevice] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  // 2FA state
+  const [tempToken, setTempToken] = useState(null);
+  const [twoFactorError, setTwoFactorError] = useState('');
 
   // Shake & Lockout state
   const [shake, setShake] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockoutUntil, setLockoutUntil] = useState(null);
-  const [twoFactorError, setTwoFactorError] = useState('');
 
   const triggerShake = () => {
     setShake(true);
@@ -33,7 +37,7 @@ export const AdminLogin = ({ onSuccess }) => {
       else if (!/\S+@\S+\.\S+/.test(value)) err = 'Invalid email address format';
     } else if (name === 'password') {
       if (!value) err = 'Password required';
-      else if (value.length < 6) err = 'Password must be at least 6 characters';
+      else if (value.length < 10) err = 'Admin password must be at least 10 characters';
     }
     return err;
   };
@@ -71,31 +75,43 @@ export const AdminLogin = ({ onSuccess }) => {
       return;
     }
 
-    if (form.email === 'admin@ripomafarm.com' && form.password === 'Admin@1234') {
+    setSubmitting(true);
+    const res = await adminLogin(form.email, form.password);
+    setSubmitting(false);
+
+    if (res.success && res.data?.require2FA) {
+      setTempToken(res.data.tempToken);
       setStep('2fa');
-      showToast('Credentials accepted. Enter 2FA passcode.', 'info');
+      showToast('Primary credentials accepted. Please enter 2FA passcode.', 'info');
+    } else if (res.status === 423) {
+      const lockoutTime = Date.now() + 15 * 60 * 1000;
+      setLockoutUntil(lockoutTime);
+      showToast(res.message || 'Account locked out due to multiple failed attempts.', 'error');
+      triggerShake();
     } else {
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
-
-      if (newAttempts >= 3) {
-        const lockoutTime = Date.now() + 5 * 60 * 1000;
-        setLockoutUntil(lockoutTime);
-        showToast('Too many failed attempts. Locked out for 5 mins.', 'error');
-      } else {
-        showToast(`Invalid admin credentials. Attempt ${newAttempts}/3.`, 'error');
-      }
+      showToast(res.message || `Invalid admin credentials. Attempt ${newAttempts}/5.`, 'error');
       triggerShake();
     }
   };
 
-  const handleTwoFactorSubmit = (code) => {
-    if (code === '123456') {
-      login({ name: 'System Administrator', email: form.email, role: 'admin' });
-      showToast('Admin authentication successful!', 'success');
+  const handleTwoFactorSubmit = async (code) => {
+    if (!tempToken) {
+      showToast('2FA challenge expired. Please re-enter credentials.', 'error');
+      setStep('credentials');
+      return;
+    }
+
+    setSubmitting(true);
+    const res = await adminVerify2FA(tempToken, code);
+    setSubmitting(false);
+
+    if (res.success) {
+      showToast('Administrative session authenticated successfully!', 'success');
       if (onSuccess) onSuccess();
     } else {
-      setTwoFactorError('Invalid 2FA passcode. Try simulated code: 123456');
+      setTwoFactorError(res.message || 'Invalid 2FA passcode. Try simulated code: 123456');
       triggerShake();
     }
   };
@@ -148,16 +164,16 @@ export const AdminLogin = ({ onSuccess }) => {
             </div>
             {/* Hand-lettered "Welcome back" */}
             <div className="font-handwritten text-2xl font-bold" style={{ color: '#5C4630' }}>
-              {step === 'credentials' ? 'Welcome back, farmer 👋' : 'One more step, friend'}
+              {step === 'credentials' ? 'Welcome back, farmer 👋' : 'Security Verification'}
             </div>
             <div
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-widest font-sans"
               style={{ background: 'rgba(47,75,60,0.1)', border: '1px solid rgba(47,75,60,0.15)', color: '#2F4B3C' }}
             >
-              <ShieldCheck className="w-3.5 h-3.5" style={{ color: '#C99A3A' }} /> Admin Portal
+              <ShieldCheck className="w-3.5 h-3.5" style={{ color: '#C99A3A' }} /> Isolated Admin Portal
             </div>
             <p className="text-xs font-sans font-light" style={{ color: '#8A6A4B' }}>
-              {step === 'credentials' ? 'Restrained Operational Access' : 'Two-Factor Authentication Required'}
+              {step === 'credentials' ? 'Restricted Operational Access (Min 10 chars)' : 'Two-Factor Authentication Required'}
             </p>
           </div>
 
@@ -190,7 +206,7 @@ export const AdminLogin = ({ onSuccess }) => {
               <PasswordInputWithMeter
                 id="admin-password"
                 name="password"
-                label="Admin Secret Key / Password"
+                label="Admin Secret Key / Password (Min 10 Chars)"
                 value={form.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 onBlur={(e) => handleBlur('password', e.target.value)}
@@ -203,7 +219,7 @@ export const AdminLogin = ({ onSuccess }) => {
 
               {/* Remember Device */}
               <div className="flex items-center justify-between py-2 text-xs font-sans" style={{ color: '#5C4630' }}>
-                <span>Remember this secure device</span>
+                <span>Remember this secure workstation</span>
                 <button
                   type="button"
                   onClick={() => setRememberDevice(!rememberDevice)}
@@ -216,16 +232,25 @@ export const AdminLogin = ({ onSuccess }) => {
 
               <button
                 type="submit"
-                disabled={lockoutUntil && Date.now() < lockoutUntil}
+                disabled={(lockoutUntil && Date.now() < lockoutUntil) || submitting}
                 className="w-full mt-4 py-3.5 active:scale-[0.99] disabled:opacity-40 font-handwritten font-bold text-base tracking-wide rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                 style={{ background: '#5C4630', color: '#F2E8D5', border: '2px solid #3A2B1D' }}
               >
-                <span>Enter the Farm Office</span>
-                <ArrowRight className="w-4 h-4" />
+                {submitting ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    <span>Verifying Credentials...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Authenticate & Verify 2FA</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
 
               <div className="pt-4 text-center" style={{ borderTop: '1px dashed #C5AD8C' }}>
-                <span className="text-[10px] font-sans block" style={{ color: '#8A6A4B' }}>Demo Admin Credentials:</span>
+                <span className="text-[10px] font-sans block" style={{ color: '#8A6A4B' }}>Demo Super Admin:</span>
                 <span className="text-xs font-handwritten font-bold" style={{ color: '#5C4630' }}>admin@ripomafarm.com / Admin@1234</span>
               </div>
             </form>
